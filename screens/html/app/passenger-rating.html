@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Rating</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-[400px] mx-auto min-h-screen bg-slate-50 shadow-2xl relative overflow-hidden pb-10">
+        <!-- Top area -->
+        <div class="bg-slate-50 pt-16 pb-8 text-center">
+            <div class="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg">
+                <span class="text-4xl font-bold text-white">✓</span>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 mt-5">Ride Complete!</h1>
+            <p class="text-slate-500 text-sm mt-1">How was your experience?</p>
+        </div>
+
+        <!-- Rate Your Driver card -->
+        <div class="mx-5 mt-6 bg-white rounded-2xl shadow-sm p-6 text-center">
+            <h2 class="font-bold text-lg text-slate-900">Rate Your Driver</h2>
+            <div class="flex justify-center gap-2 mt-4">
+                <span class="w-10 h-10 text-4xl text-slate-300">☆</span>
+                <span class="w-10 h-10 text-4xl text-slate-300">☆</span>
+                <span class="w-10 h-10 text-4xl text-slate-300">☆</span>
+                <span class="w-10 h-10 text-4xl text-slate-300">☆</span>
+                <span class="w-10 h-10 text-4xl text-slate-300">☆</span>
+            </div>
+        </div>
+
+        <!-- What went well? card -->
+        <div class="mx-5 mt-4 bg-white rounded-2xl shadow-sm p-6 text-center">
+            <h2 class="font-bold text-lg text-slate-900">What went well?</h2>
+            <div class="flex flex-wrap justify-center gap-2.5 mt-4">
+                <button class="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-full text-sm font-medium">Polite</button>
+                <button class="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-full text-sm font-medium">Safe</button>
+                <button class="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-full text-sm font-medium">Clean</button>
+                <button class="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-full text-sm font-medium">On Time</button>
+                <button class="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-full text-sm font-medium">Friendly</button>
+            </div>
+        </div>
+
+        <!-- Ride summary card -->
+        <div class="mx-5 mt-6 bg-white rounded-2xl shadow-sm p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-slate-400">Driver</span>
+                <span class="font-semibold text-sm text-slate-900 text-right">Joel Sardan</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-slate-400">Plate Number</span>
+                <span class="font-semibold text-sm text-slate-900 text-right">ABC-1234</span>
+            </div>
+            <div class="border-t border-slate-100 my-3"></div>
+            <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-900">Total Fare</span>
+                <span class="font-black text-xl text-emerald-600 text-right">₱45</span>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="mx-5 mt-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white w-[calc(100%-40px)] rounded-2xl py-4 font-bold text-lg shadow-lg shadow-blue-200">
+            Submit & View Receipt
+        </button>
+    </div>
+</body>
+</html>

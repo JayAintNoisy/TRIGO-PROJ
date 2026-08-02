@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Driver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* just to make the app frame visible */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="max-w-[400px] w-full mx-auto min-h-screen bg-[#F8FAFC] shadow-2xl relative overflow-hidden flex flex-col">
+        
+        <!-- Top bar -->
+        <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-100 bg-white sticky top-0 z-10">
+            <button class="text-slate-500 text-lg flex-shrink-0 hover:text-slate-700 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h1 class="font-bold text-xl text-[#0F172A]">Choose Your Driver</h1>
+        </div>
+
+        <!-- Scrollable driver list -->
+        <div class="p-5 space-y-5 overflow-y-auto flex-1">
+            
+            <!-- Card 1 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-[#2563EB] rounded-2xl flex items-center justify-center shadow">
+                        <span class="text-3xl">🧑</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 class="font-bold text-lg text-[#0F172A]">Joel Sardan</h2>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">ABC-1234</span>
+                            <span class="text-sm font-semibold text-slate-700">⭐ 4.9</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="bg-blue-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">💲 Fare</div>
+                        <div class="text-2xl font-black text-[#10B981]">₱45</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">🕐 ETA</div>
+                        <div class="text-2xl font-black text-[#2563EB]">3 min</div>
+                    </div>
+                </div>
+                
+                <button class="bg-[#2563EB] text-white w-full rounded-xl py-3.5 font-bold text-base mt-4 hover:bg-blue-700 transition-colors shadow-sm active:scale-[0.98]">
+                    Choose this Driver
+                </button>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-[#2563EB] rounded-2xl flex items-center justify-center shadow">
+                        <span class="text-3xl">🧑</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 class="font-bold text-lg text-[#0F172A]">Jaymar Yecyec</h2>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">DEF-5678</span>
+                            <span class="text-sm font-semibold text-slate-700">⭐ 4.8</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="bg-blue-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">💲 Fare</div>
+                        <div class="text-2xl font-black text-[#10B981]">₱42</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">🕐 ETA</div>
+                        <div class="text-2xl font-black text-[#2563EB]">5 min</div>
+                    </div>
+                </div>
+                
+                <button class="bg-[#2563EB] text-white w-full rounded-xl py-3.5 font-bold text-base mt-4 hover:bg-blue-700 transition-colors shadow-sm active:scale-[0.98]">
+                    Choose this Driver
+                </button>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-[#2563EB] rounded-2xl flex items-center justify-center shadow">
+                        <span class="text-3xl">🧒</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 class="font-bold text-lg text-[#0F172A]">Jomari Andales</h2>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">JRF-2395</span>
+                            <span class="text-sm font-semibold text-slate-700">⭐ 4.6</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="bg-blue-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">💲 Fare</div>
+                        <div class="text-2xl font-black text-[#10B981]">₱40</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-xs text-slate-500 mb-0.5">🕐 ETA</div>
+                        <div class="text-2xl font-black text-[#2563EB]">7 min</div>
+                    </div>
+                </div>
+                
+                <button class="bg-[#2563EB] text-white w-full rounded-xl py-3.5 font-bold text-base mt-4 hover:bg-blue-700 transition-colors shadow-sm active:scale-[0.98]">
+                    Choose this Driver
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

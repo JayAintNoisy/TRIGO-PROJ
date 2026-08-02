@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigo - Landing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10B981',
+                        },
+                        blue: {
+                            600: '#2563EB',
+                        },
+                        orange: {
+                            500: '#F97316',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .shadow-inner {
+                box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-[400px] mx-auto min-h-screen bg-gradient-to-br from-emerald-400 to-blue-600 shadow-2xl relative overflow-hidden flex flex-col items-center pt-24 px-6 pb-12">
+        
+        <!-- Center Icon -->
+        <div class="w-32 h-32 bg-white shadow-xl rounded-3xl flex items-center justify-center">
+            <span class="text-6xl">🛺</span>
+        </div>
+        
+        <!-- Brand -->
+        <h1 class="text-5xl font-black text-white tracking-widest mt-6">TRIGO</h1>
+        <p class="text-white/90 text-sm mt-2">Tricycle Booking System</p>
+
+        <!-- Role Selection Header -->
+        <h2 class="text-2xl font-bold text-white mt-16">SELECT YOUR ROLE</h2>
+        <p class="text-white/80 text-sm mt-1 mb-8">Choose how you want to continue</p>
+
+        <!-- Passenger Card -->
+        <div class="bg-white rounded-3xl p-5 w-full flex items-center mb-4 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform">
+            <div class="w-16 h-16 bg-emerald-500 shadow-inner rounded-2xl flex items-center justify-center text-white text-2xl flex-shrink-0">
+                👤
+            </div>
+            <div class="ml-4 flex-1">
+                <span class="font-bold text-xl text-slate-900 block">Passenger</span>
+                <span class="text-slate-500 text-sm">Book a tricycle ride</span>
+            </div>
+            <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                →
+            </div>
+        </div>
+
+        <!-- Driver Card -->
+        <div class="bg-white rounded-3xl p-5 w-full flex items-center mb-10 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform">
+            <div class="w-16 h-16 bg-orange-500 shadow-inner rounded-2xl flex items-center justify-center text-white text-2xl flex-shrink-0">
+                🛺
+            </div>
+            <div class="ml-4 flex-1">
+                <span class="font-bold text-xl text-slate-900 block">Driver</span>
+                <span class="text-slate-500 text-sm">Start earning today</span>
+            </div>
+            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                →
+            </div>
+        </div>
+
+        <!-- Admin Portal -->
+        <a href="#" class="text-white/90 underline font-medium mt-auto hover:text-white">Admin Portal →</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TriGo Mobile App (Flutter - Mobile/Emulator)",
+      "cwd": "${workspaceFolder}/apps/trigo",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/apps/trigo/lib/main.dart"
+    },
+    {
+      "name": "TriGo Backend (Node.js Express)",
+      "cwd": "apps/trigo-backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "type": "node",
+      "request": "launch",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "TriGo Admin Web (Vue 3)",
+      "cwd": "apps/trigo-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "type": "node",
+      "request": "launch",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full TriGo Stack (Backend + Admin + Mobile)",
+      "configurations": [
+        "TriGo Backend (Node.js Express)",
+        "TriGo Admin Web (Vue 3)",
+        "TriGo Mobile App (Flutter - Mobile/Emulator)"
+      ]
+    }
+  ]
+}

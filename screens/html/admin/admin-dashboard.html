@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIGO Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Sidebar -->
+    <aside class="fixed inset-y-0 left-0 w-48 bg-white border-r border-slate-200 flex flex-col z-10">
+        <div class="p-6 border-b border-slate-100 flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mb-2 shadow-lg shadow-blue-200">
+                T
+            </div>
+            <h1 class="font-bold text-lg text-slate-800 tracking-tight">TRIGO</h1>
+            <p class="text-xs text-slate-500 font-medium">Admin Portal</p>
+        </div>
+        <nav class="flex-1 py-4 flex flex-col gap-1">
+            <a href="admin-dashboard.html" class="px-6 py-3 border-l-4 border-blue-600 bg-blue-50 text-blue-700 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl">📊</span>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a href="admin-driver.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">🛵</span>
+                <span class="text-sm">Drivers</span>
+            </a>
+            <a href="admin-passenger.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">👥</span>
+                <span class="text-sm">Passengers</span>
+            </a>
+            <a href="admin-financial.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">💰</span>
+                <span class="text-sm">Financial</span>
+            </a>
+            <a href="admin-fare-matrix.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">📈</span>
+                <span class="text-sm">Fare Matrix</span>
+            </a>
+            <a href="admin-safety.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">🛡️</span>
+                <span class="text-sm">Safety & Reports</span>
+            </a>
+            <a href="admin-communication.html" class="px-6 py-3 border-l-4 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-3 transition-colors">
+                <span class="text-xl opacity-75">📢</span>
+                <span class="text-sm">Communication</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-100">
+            <button class="w-full py-2.5 px-4 bg-red-50 text-red-600 font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-red-100 transition-colors">
+                <span>🚪</span>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-48 min-h-screen">
+        <!-- Header (Optional Top Bar) -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-10 px-8 py-4 flex items-center justify-between">
+            <div>
+                <!-- Optional title here, keeping empty as per design, but good for structure -->
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 relative">
+                    🔔
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                </button>
+                <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-500 font-bold">
+                        A
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            <!-- Page Title -->
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
+                <p class="text-slate-500 mt-1">Thursday, April 30, 2026</p>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-2xl">
+                            🛵
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">Active Drivers</p>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-3xl font-bold text-slate-900">47</h3>
+                            <span class="text-sm font-medium text-green-600 flex items-center">
+                                +12% today
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-2xl">
+                            💰
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">Today's Revenue</p>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-3xl font-bold text-slate-900">₱12,450</h3>
+                            <span class="text-sm font-medium text-green-600 flex items-center">
+                                +8% today
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-2xl">
+                            ✅
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">Completed Trips</p>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-3xl font-bold text-slate-900">234</h3>
+                            <span class="text-sm font-medium text-green-600 flex items-center">
+                                +15% today
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center text-2xl">
+                            🚨
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">Active SOS</p>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-3xl font-bold text-slate-900">0</h3>
+                            <span class="text-sm font-medium text-slate-400">
+                                No active emergencies
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Rides Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-900">Recent Rides</h2>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
+                            🔍
+                        </span>
+                        <input type="text" placeholder="Search..." class="pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64 bg-slate-50">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="px-6 py-4 font-semibold">Passenger</th>
+                                <th class="px-6 py-4 font-semibold">Driver</th>
+                                <th class="px-6 py-4 font-semibold">Fare</th>
+                                <th class="px-6 py-4 font-semibold">Status</th>
+                                <th class="px-6 py-4 font-semibold">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-slate-900">Jaymar Yecyec</td>
+                                <td class="px-6 py-4 text-slate-600">Lenjohn Opalong</td>
+                                <td class="px-6 py-4 text-blue-600 font-medium">₱50</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Completed</span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500">2:45 PM</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-slate-900">Jomari Andales</td>
+                                <td class="px-6 py-4 text-slate-600">Mark Donald Layon</td>
+                                <td class="px-6 py-4 text-blue-600 font-medium">₱65</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">In Transit</span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500">2:30 PM</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-slate-900">Joel Sardan</td>
+                                <td class="px-6 py-4 text-slate-600">Kenneth Minguito</td>
+                                <td class="px-6 py-4 text-blue-600 font-medium">₱45</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Completed</span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500">2:15 PM</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-slate-900">Kevin Mercado</td>
+                                <td class="px-6 py-4 text-slate-600">Edwin Angoring</td>
+                                <td class="px-6 py-4 text-blue-600 font-medium">₱55</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Completed</span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500">2:00 PM</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-semibold transition-all">
+                    <span class="text-xl">⚙️</span>
+                    Update Fare Matrix
+                </button>
+                <button class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl py-4 px-6 flex items-center justify-center gap-3 font-semibold transition-all">
+                    <span class="text-xl">🔔</span>
+                    Send Announcement
+                </button>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

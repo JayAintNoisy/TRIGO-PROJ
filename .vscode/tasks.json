@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flutter: Run App (Device Picker)",
+      "type": "shell",
+      "command": "flutter run",
+      "options": {
+        "cwd": "${workspaceFolder}/apps/trigo"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Backend: Start Dev Server",
+      "type": "shell",
+      "command": "npm --workspace=apps/trigo-backend run dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "Admin: Start Dev Server",
+      "type": "shell",
+      "command": "npm --workspace=apps/trigo-admin run dev",
+      "problemMatcher": []
+    }
+  ]
+}

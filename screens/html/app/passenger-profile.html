@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center min-h-screen">
+    <div class="max-w-[400px] w-full min-h-screen bg-slate-50 shadow-2xl relative overflow-hidden flex flex-col pb-16">
+        
+        <!-- Top hero section -->
+        <div class="bg-gradient-to-b from-blue-600 to-blue-500 pt-6 pb-20 px-6 text-white text-center">
+            <!-- Top row -->
+            <div class="flex items-center justify-between">
+                <button class="text-white text-xl">✕</button>
+                <h1 class="font-bold text-lg text-white">Profile</h1>
+                <button class="text-white text-xl">⚙</button>
+            </div>
+            
+            <!-- Avatar circle -->
+            <div class="w-24 h-24 bg-blue-300/50 rounded-full mx-auto mt-4 border-4 border-white/30 flex items-center justify-center">
+                <span class="text-4xl text-white/80">👤</span>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-white mt-3">Maria Santos</h2>
+            <p class="text-white/70 text-sm mt-1">+63 912 345 6789</p>
+        </div>
+
+        <!-- Menu card -->
+        <div class="mx-4 -mt-10 relative z-10 bg-white rounded-2xl shadow-sm border border-slate-100 p-2">
+            <!-- Edit Profile -->
+            <button class="w-full flex items-center px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xl">👤</div>
+                <span class="font-medium text-sm ml-3 flex-1 text-left text-slate-800">Edit Profile</span>
+                <span class="text-slate-300 text-xl">›</span>
+            </button>
+            
+            <!-- Saved Addresses -->
+            <button class="w-full flex items-center px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 text-xl">📍</div>
+                <span class="font-medium text-sm ml-3 flex-1 text-left text-slate-800">Saved Addresses</span>
+                <span class="text-slate-300 text-xl">›</span>
+            </button>
+            
+            <!-- Payment Methods -->
+            <button class="w-full flex items-center px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-xl">💳</div>
+                <span class="font-medium text-sm ml-3 flex-1 text-left text-slate-800">Payment Methods</span>
+                <span class="text-slate-300 text-xl">›</span>
+            </button>
+        </div>
+
+        <!-- Scrollable content wrapper (optional, helps with overflowing on shorter screens) -->
+        <div class="flex-1 overflow-y-auto pb-6">
+            <!-- Quick Addresses card -->
+            <div class="mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <h3 class="font-bold text-lg text-slate-800">Quick Addresses</h3>
+                
+                <!-- Address 1 -->
+                <div class="flex items-center gap-3 mt-4">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 text-xl shrink-0">🏠</div>
+                    <div class="flex flex-col">
+                        <span class="font-medium text-sm text-slate-800">Home</span>
+                        <span class="text-xs text-slate-400">123 Main St, Barangay Center</span>
+                    </div>
+                </div>
+                
+                <!-- Address 2 -->
+                <div class="flex items-center gap-3 mt-3">
+                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 text-xl shrink-0">🏢</div>
+                    <div class="flex flex-col">
+                        <span class="font-medium text-sm text-slate-800">Work</span>
+                        <span class="text-xs text-slate-400">456 Office Ave, Business District</span>
+                    </div>
+                </div>
+                
+                <!-- Add new address button -->
+                <button class="w-full mt-4 border-2 border-dashed border-slate-200 rounded-xl py-3 text-center transition-colors hover:bg-slate-50">
+                    <span class="text-blue-600 font-medium text-sm">+ Add New Address</span>
+                </button>
+            </div>
+
+            <!-- Payment Methods card -->
+            <div class="mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <h3 class="font-bold text-lg text-slate-800">Payment Methods</h3>
+                
+                <!-- GCash row -->
+                <div class="mt-3 bg-blue-600 rounded-xl p-4 flex items-center cursor-pointer shadow-sm">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl shrink-0">💳</div>
+                    <div class="flex flex-col ml-3 flex-1">
+                        <span class="font-medium text-white text-sm">GCash</span>
+                        <span class="text-white/70 text-xs">0912 345 6789</span>
+                    </div>
+                    <div class="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
+                        <div class="w-2.5 h-2.5 bg-white rounded-full"></div>
+                    </div>
+                </div>
+                
+                <!-- Cash row -->
+                <div class="mt-3 flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xl shrink-0">💵</div>
+                    <div class="flex flex-col flex-1">
+                        <span class="font-medium text-sm text-slate-800">Cash</span>
+                        <span class="text-xs text-slate-400">Pay driver directly</span>
+                    </div>
+                    <div class="w-5 h-5 rounded-full border-2 border-slate-300"></div>
+                </div>
+            </div>
+
+            <!-- Logout button -->
+            <div class="px-4 mt-6">
+                <button class="bg-red-50 text-red-500 w-full rounded-2xl py-3.5 font-semibold text-center flex items-center justify-center gap-2 hover:bg-red-100 transition-colors">
+                    Logout <span class="text-lg">→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom nav bar -->
+        <div class="bg-white border-t border-slate-200 flex justify-around py-3 absolute bottom-0 w-full z-20">
+            <button class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                <span class="text-xl mb-1">🏠</span>
+                <span class="text-[10px] font-medium">Home</span>
+            </button>
+            <button class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                <span class="text-xl mb-1">📄</span>
+                <span class="text-[10px] font-medium">History</span>
+            </button>
+            <button class="flex flex-col items-center text-blue-600">
+                <span class="text-xl mb-1">👤</span>
+                <span class="text-[10px] font-medium">Profile</span>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

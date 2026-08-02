@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Driver Management - TRIGO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        background: '#F8FAFC',
+                        border: '#E2E8F0'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="bg-background text-slate-800 font-sans antialiased">
+
+    <!-- Sidebar -->
+    <aside class="fixed top-0 left-0 h-screen w-48 bg-white border-r border-border flex flex-col z-20 shadow-sm">
+        <div class="p-4 border-b border-border flex items-center gap-2">
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                T
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight text-slate-900">TRIGO</h1>
+                <p class="text-xs text-slate-500">Admin Portal</p>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-3 flex flex-col gap-1 overflow-y-auto mt-2">
+            <a href="admin-dashboard.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-squares-four text-lg"></i>
+                Dashboard
+            </a>
+            <a href="admin-driver.html" class="flex items-center gap-2 px-3 py-2 text-sm text-primary bg-blue-50 border-l-4 border-primary rounded-r-lg font-medium transition-colors">
+                <i class="ph ph-steering-wheel text-lg"></i>
+                Drivers
+            </a>
+            <a href="admin-passenger.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-users text-lg"></i>
+                Passengers
+            </a>
+            <a href="admin-financial.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-wallet text-lg"></i>
+                Financial
+            </a>
+            <a href="admin-fare-matrix.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-money text-lg"></i>
+                Fare Matrix
+            </a>
+            <a href="admin-safety.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-shield-check text-lg"></i>
+                Safety & Reports
+            </a>
+            <a href="admin-communication.html" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <i class="ph ph-chat-circle-dots text-lg"></i>
+                Communication
+            </a>
+        </nav>
+
+        <div class="p-3 border-t border-border mt-auto">
+            <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-danger bg-red-50 rounded-lg transition-colors hover:bg-red-100 font-medium">
+                <i class="ph ph-sign-out text-lg"></i>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-48 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Drivers</h2>
+                <p class="text-sm text-slate-500">Thursday, April 30, 2026</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button class="w-10 h-10 rounded-full hover:bg-slate-50 flex items-center justify-center relative text-slate-600 transition-colors">
+                    <i class="ph ph-bell text-xl"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
+                </button>
+                <div class="flex items-center gap-3 pl-4 border-l border-border">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" alt="Admin" class="w-10 h-10 rounded-full shadow-sm">
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-6 max-w-7xl mx-auto space-y-6">
+            
+            <!-- Top Section: Title & Search -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Driver Management</h1>
+                    <p class="text-slate-500 mt-1">6 registered drivers · 3 currently active</p>
+                </div>
+                <div class="relative w-full md:w-80">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="Search by name or plate..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm shadow-sm placeholder-slate-400">
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-border text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-medium">Driver</th>
+                                <th class="p-4 font-medium">Plate No.</th>
+                                <th class="p-4 font-medium">Rating</th>
+                                <th class="p-4 font-medium">Total Rides</th>
+                                <th class="p-4 font-medium">Status</th>
+                                <th class="p-4 font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border text-sm">
+                            
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">J</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">Joel Sardan</div>
+                                            <div class="text-xs text-success font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-check-circle"></i> Verified
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">ABC-1234</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 4.9
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">1,247</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1.5 text-success font-medium text-sm">
+                                        <span class="w-2 h-2 rounded-full bg-success"></span> Online
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-danger hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-prohibit text-lg"></i> Suspend
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">J</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">Jaymar Yecyec</div>
+                                            <div class="text-xs text-success font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-check-circle"></i> Verified
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">DEF-5678</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 4.8
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">856</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1.5 text-success font-medium text-sm">
+                                        <span class="w-2 h-2 rounded-full bg-success"></span> Online
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-danger hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-prohibit text-lg"></i> Suspend
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">J</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">Jomari Andales</div>
+                                            <div class="text-xs text-success font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-check-circle"></i> Verified
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">GHI-9012</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 4.7
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">634</td>
+                                <td class="p-4">
+                                    <span class="text-slate-500 font-medium text-sm">Offline</span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-danger hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-prohibit text-lg"></i> Suspend
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">J</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">John Degamo</div>
+                                            <div class="text-xs text-success font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-check-circle"></i> Verified
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">JKL-3456</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 4.5
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">423</td>
+                                <td class="p-4">
+                                    <span class="text-slate-500 font-medium text-sm">Offline</span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-danger hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-prohibit text-lg"></i> Suspend
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 5 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">L</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">Lenjohn Opalong</div>
+                                            <div class="text-xs text-orange-500 font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-warning-circle"></i> Pending Verification
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">MNO-7890</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 3.8
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">89</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600">
+                                        Suspended
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-arrows-clockwise text-lg"></i> Restore
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 6 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">K</div>
+                                        <div>
+                                            <div class="font-medium text-slate-800">Kevin Mercado</div>
+                                            <div class="text-xs text-success font-medium flex items-center gap-1 mt-0.5">
+                                                <i class="ph-fill ph-check-circle"></i> Verified
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium">PQR-1122</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-1 text-slate-700 font-medium">
+                                        <span class="text-yellow-400 text-lg">⭐</span> 4.6
+                                    </div>
+                                </td>
+                                <td class="p-4 text-primary font-medium">312</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-eye text-lg"></i> View
+                                        </button>
+                                        <button class="text-danger hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                                            <i class="ph ph-prohibit text-lg"></i> Suspend
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

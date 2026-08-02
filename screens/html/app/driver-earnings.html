@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Earnings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="max-w-[400px] w-full mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative overflow-hidden">
+        
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto pb-4">
+            <!-- Top bar -->
+            <div class="px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl cursor-pointer">←</span>
+                    <h1 class="font-bold text-xl text-slate-900">Your Earnings</h1>
+                </div>
+                <span class="text-slate-400 text-xl cursor-pointer">📅</span>
+            </div>
+
+            <!-- Today's earnings hero card -->
+            <div class="mx-4 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <p class="text-white/80 text-sm font-medium">💲 Money Earned Today</p>
+                <p class="text-5xl font-black mt-1">₱450</p>
+                <p class="text-white/70 text-sm mt-2">📈 +25% from yesterday</p>
+            </div>
+
+            <!-- This Week card -->
+            <div class="mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-lg text-slate-900">This Week</h2>
+                    <span class="text-emerald-600 font-bold">₱3,520</span>
+                </div>
+                
+                <div class="flex">
+                    <div class="flex flex-col justify-between text-xs text-slate-400 h-32 pr-2 pb-6">
+                        <span>₱800</span>
+                        <span>₱600</span>
+                        <span>₱400</span>
+                        <span>₱200</span>
+                        <span>₱0</span>
+                    </div>
+                    
+                    <div class="flex-1 flex items-end justify-between h-32 gap-2 pb-6 relative">
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 40%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Mon</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 50%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Tue</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 50%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Wed</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 55%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Thu</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 65%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Fri</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 80%;">
+                            <div class="w-full bg-emerald-200 group-hover:bg-emerald-300 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Sat</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer" style="height: 45%;">
+                            <div class="w-full bg-emerald-500 rounded-t-lg h-full"></div>
+                            <span class="text-[10px] text-slate-400 absolute -bottom-1">Today</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-slate-400 text-center mt-3">Tap a bar to see daily breakdown</p>
+            </div>
+
+            <!-- Today's Breakdown card -->
+            <div class="mx-4 mt-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <h2 class="font-bold text-lg text-slate-900 mb-4">Today's Breakdown</h2>
+                
+                <div class="mb-4">
+                    <div class="flex items-center mb-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                        <span class="text-sm font-medium text-slate-700">Cash</span>
+                        <span class="font-bold text-right ml-auto text-slate-900">₱280</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex items-center mb-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                        <span class="text-sm font-medium text-slate-700">GCash</span>
+                        <span class="font-bold text-right ml-auto text-slate-900">₱170</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-emerald-500 h-2 rounded-full" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two stat cards side by side -->
+            <div class="mx-4 mt-4 grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Trips Today</p>
+                    <p class="text-3xl font-bold text-blue-600">12</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Avg per Trip</p>
+                    <p class="text-3xl font-bold text-emerald-600">₱38</p>
+                </div>
+            </div>
+
+            <!-- Recent Trips section -->
+            <div class="mx-4 mt-6">
+                <h2 class="font-bold text-lg mb-3 text-slate-900">Recent Trips</h2>
+                
+                <div class="flex flex-col">
+                    <!-- Trip 1 -->
+                    <div class="flex items-center gap-3 py-3 border-b border-slate-100">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                            👤
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-slate-900">Maria Santos</p>
+                            <p class="text-xs text-slate-400">2:45 PM · Cash</p>
+                        </div>
+                        <div class="font-bold text-emerald-600">₱50</div>
+                    </div>
+                    
+                    <!-- Trip 2 -->
+                    <div class="flex items-center gap-3 py-3 border-b border-slate-100">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                            👤
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-slate-900">Juan Dela Cruz</p>
+                            <p class="text-xs text-slate-400">1:30 PM · GCash</p>
+                        </div>
+                        <div class="font-bold text-emerald-600">₱65</div>
+                    </div>
+                    
+                    <!-- Trip 3 -->
+                    <div class="flex items-center gap-3 py-3 border-b border-slate-100">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                            👤
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-slate-900">Ana Reyes</p>
+                            <p class="text-xs text-slate-400">12:15 PM · Cash</p>
+                        </div>
+                        <div class="font-bold text-emerald-600">₱45</div>
+                    </div>
+                    
+                    <!-- Trip 4 -->
+                    <div class="flex items-center gap-3 py-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                            👤
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-slate-900">Pedro Garcia</p>
+                            <p class="text-xs text-slate-400">11:00 AM · GCash</p>
+                        </div>
+                        <div class="font-bold text-emerald-600">₱55</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cash Out to GCash button -->
+            <div class="mx-4 mt-4 mb-4">
+                <button class="bg-emerald-500 text-white w-full rounded-2xl py-4 font-bold text-lg flex items-center justify-center gap-2 shadow-sm hover:bg-emerald-600 transition-colors">
+                    <span>💳</span> Cash Out to GCash
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom nav bar -->
+        <div class="sticky bottom-0 bg-white border-t border-slate-200 flex justify-around py-3">
+            <div class="flex flex-col items-center gap-1 cursor-pointer">
+                <span class="text-slate-400 text-xl grayscale">🏠</span>
+                <span class="text-xs text-slate-400 font-medium">Home</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 cursor-pointer">
+                <span class="text-blue-600 text-xl">💲</span>
+                <span class="text-xs text-blue-600 font-medium">Earnings</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 cursor-pointer">
+                <span class="text-slate-400 text-xl grayscale">👤</span>
+                <span class="text-xs text-slate-400 font-medium">Profile</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

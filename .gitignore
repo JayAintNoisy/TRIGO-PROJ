@@ -1,0 +1,40 @@
+# Node / Monorepo Dependencies & Builds
+node_modules/
+dist/
+build/
+.npm/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Flutter & Dart
+apps/trigo/.dart_tool/
+apps/trigo/.flutter-plugins
+apps/trigo/.flutter-plugins-dependencies
+apps/trigo/.packages
+apps/trigo/.pub-cache/
+apps/trigo/.pub/
+apps/trigo/build/
+apps/trigo/ios/Pods/
+apps/trigo/ios/Runner.xcworkspace/
+apps/trigo/android/.gradle/
+apps/trigo/android/app/build/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+*.suo
+*.user
+
+# Gemini / Antigravity System Artifacts
+.gemini/

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* Outer background to see shadow */
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-[400px] mx-auto min-h-screen bg-slate-50 shadow-2xl relative overflow-hidden flex flex-col">
+        
+        <!-- Top bar -->
+        <div class="bg-white px-5 py-4 flex items-center gap-3 border-b border-slate-100">
+            <button class="text-slate-600 font-bold text-lg">✕</button>
+            <h1 class="font-bold text-xl text-slate-900">Settings</h1>
+        </div>
+
+        <!-- Subtle blue gradient strip -->
+        <div class="h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
+
+        <!-- Content area -->
+        <div class="flex-1 overflow-y-auto pb-24">
+            
+            <!-- Notifications card -->
+            <div class="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-5">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 rounded-xl w-8 h-8 flex items-center justify-center text-blue-600 text-lg">🔔</div>
+                    <span class="font-bold ml-3 text-slate-900">Notifications</span>
+                </div>
+                
+                <div class="flex justify-between items-start py-3 border-b border-slate-100">
+                    <div>
+                        <div class="font-medium text-sm text-slate-900">Push Notifications</div>
+                        <div class="text-xs text-slate-400 mt-1">Receive ride updates and alerts</div>
+                    </div>
+                    <div class="w-12 h-7 bg-blue-600 rounded-full flex items-center p-1 cursor-pointer">
+                        <div class="bg-white w-5 h-5 rounded-full shadow-md transform translate-x-5"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-start py-3 border-b border-slate-100">
+                    <div>
+                        <div class="font-medium text-sm text-slate-900">SMS Notifications</div>
+                        <div class="text-xs text-slate-400 mt-1">Get ride details via text</div>
+                    </div>
+                    <div class="w-12 h-7 bg-slate-300 rounded-full flex items-center p-1 cursor-pointer">
+                        <div class="bg-white w-5 h-5 rounded-full shadow-md"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-start py-3">
+                    <div>
+                        <div class="font-medium text-sm text-slate-900">Email Notifications</div>
+                        <div class="text-xs text-slate-400 mt-1">Receipts and promotions</div>
+                    </div>
+                    <div class="w-12 h-7 bg-blue-600 rounded-full flex items-center p-1 cursor-pointer">
+                        <div class="bg-white w-5 h-5 rounded-full shadow-md transform translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCOUNT section -->
+            <div class="mx-4 mt-6">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">ACCOUNT</div>
+                <div class="bg-white rounded-2xl shadow-sm">
+                    <div class="flex items-center px-5 py-4 border-b border-slate-100 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">👤</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Edit Profile</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                    <div class="flex items-center px-5 py-4 border-b border-slate-100 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">🔒</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Change Password</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                    <div class="flex items-center px-5 py-4 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">💳</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Payment Methods</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREFERENCES section -->
+            <div class="mx-4 mt-6">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">PREFERENCES</div>
+                <div class="bg-white rounded-2xl shadow-sm">
+                    <div class="flex items-center px-5 py-4 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">🌐</div>
+                        <div class="font-medium text-sm text-slate-900 ml-3">Language</div>
+                        <div class="text-slate-400 text-sm ml-auto mr-2">English</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUPPORT section -->
+            <div class="mx-4 mt-6">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">SUPPORT</div>
+                <div class="bg-white rounded-2xl shadow-sm">
+                    <div class="flex items-center px-5 py-4 border-b border-slate-100 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">❓</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Help Center</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                    <div class="flex items-center px-5 py-4 border-b border-slate-100 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">🛡</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Safety</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                    <div class="flex items-center px-5 py-4 cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">📄</div>
+                        <div class="font-medium text-sm text-slate-900 flex-1 ml-3">Terms & Privacy</div>
+                        <div class="text-slate-400 font-bold text-lg">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout button -->
+            <button class="mx-4 mt-6 mb-8 bg-red-50 text-red-500 w-[calc(100%-2rem)] rounded-2xl py-3.5 font-semibold text-center flex items-center justify-center cursor-pointer">
+                <span class="mr-2">🚪</span> Logout
+            </button>
+
+        </div>
+
+        <!-- Bottom nav bar -->
+        <div class="absolute bottom-0 w-full bg-white border-t border-slate-200 flex justify-around py-3">
+            <div class="flex flex-col items-center justify-center text-blue-600 cursor-pointer">
+                <div class="text-xl">🏠</div>
+                <div class="text-[10px] font-medium mt-1">Home</div>
+            </div>
+            <div class="flex flex-col items-center justify-center text-slate-400 cursor-pointer">
+                <div class="text-xl">🕒</div>
+                <div class="text-[10px] font-medium mt-1">History</div>
+            </div>
+            <div class="flex flex-col items-center justify-center text-slate-400 cursor-pointer">
+                <div class="text-xl">👤</div>
+                <div class="text-[10px] font-medium mt-1">Profile</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIGO Admin - Passenger Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .text-primary {
+            color: #2563EB;
+        }
+        .bg-primary {
+            background-color: #2563EB;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Sidebar -->
+    <aside class="fixed inset-y-0 left-0 w-48 bg-white border-r border-slate-200 flex flex-col z-10">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-200">
+            <i class="fa-solid fa-truck-fast text-blue-600 text-xl mr-2"></i>
+            <div>
+                <div class="font-bold text-lg leading-tight text-blue-600">TRIGO</div>
+                <div class="text-[10px] text-slate-500 font-medium">Admin Portal</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 py-4 flex flex-col gap-1 px-3">
+            <a href="admin-dashboard.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-chart-line w-5 text-slate-400 mr-2"></i> Dashboard
+            </a>
+            <a href="admin-driver.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-steering-wheel w-5 text-slate-400 mr-2"></i> Drivers
+            </a>
+            <a href="admin-passenger.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-blue-50 border-l-4 border-blue-600 pl-2">
+                <i class="fa-solid fa-users w-5 text-blue-600 mr-2"></i> Passengers
+            </a>
+            <a href="admin-financial.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-wallet w-5 text-slate-400 mr-2"></i> Financial
+            </a>
+            <a href="admin-fare-matrix.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-calculator w-5 text-slate-400 mr-2"></i> Fare Matrix
+            </a>
+            <a href="admin-safety.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-shield-halved w-5 text-slate-400 mr-2"></i> Safety & Reports
+            </a>
+            <a href="admin-communication.html" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <i class="fa-solid fa-bullhorn w-5 text-slate-400 mr-2"></i> Communication
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <div class="p-4 border-t border-slate-200">
+            <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 bg-red-50 hover:bg-red-100">
+                <i class="fa-solid fa-right-from-bracket w-5 mr-2"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-48 min-h-screen">
+        <!-- Top Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10">
+            <div class="flex items-center">
+                <h2 class="text-xl font-semibold text-slate-800">Passengers</h2>
+                <span class="ml-4 text-sm text-slate-500 hidden md:block border-l border-slate-200 pl-4">Thursday, April 30, 2026</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="text-slate-400 hover:text-slate-600 relative">
+                    <i class="fa-regular fa-bell text-xl"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Admin" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-6 max-w-7xl mx-auto">
+            
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Passenger Management</h1>
+                    <p class="text-sm text-slate-500 mt-1">Manage registered passengers and their activity</p>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="Search passengers..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                            <tr>
+                                <th class="px-6 py-3">Name</th>
+                                <th class="px-6 py-3">Phone</th>
+                                <th class="px-6 py-3 text-center">Total Rides</th>
+                                <th class="px-6 py-3 text-center">Avg Rating Given</th>
+                                <th class="px-6 py-3">Status</th>
+                                <th class="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">J</div>
+                                        <div class="font-medium text-slate-900">Joel Sardan</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">+63 912 345 6789</td>
+                                <td class="px-6 py-4 text-center text-blue-600 font-medium">47</td>
+                                <td class="px-6 py-4 text-center text-slate-600">⭐ 4.9</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">J</div>
+                                        <div class="font-medium text-slate-900">Jomari Andales</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">+63 923 456 7890</td>
+                                <td class="px-6 py-4 text-center text-blue-600 font-medium">32</td>
+                                <td class="px-6 py-4 text-center text-slate-600">⭐ 4.8</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">J</div>
+                                        <div class="font-medium text-slate-900">Jaymar Yecyec</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">+63 934 567 8901</td>
+                                <td class="px-6 py-4 text-center text-blue-600 font-medium">15</td>
+                                <td class="px-6 py-4 text-center text-slate-600">⭐ 5</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">K</div>
+                                        <div class="font-medium text-slate-900">Kevin Mercado</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">+63 945 678 9012</td>
+                                <td class="px-6 py-4 text-center text-blue-600 font-medium">8</td>
+                                <td class="px-6 py-4 text-center text-slate-600">⭐ 4.7</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 5 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">L</div>
+                                        <div class="font-medium text-slate-900">Lenjohn Opalong</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">+63 956 789 0123</td>
+                                <td class="px-6 py-4 text-center text-blue-600 font-medium">3</td>
+                                <td class="px-6 py-4 text-center text-slate-600">⭐ 4.5</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                                        Suspended
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

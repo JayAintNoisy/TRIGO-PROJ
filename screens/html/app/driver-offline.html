@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Outer body bg */
+        }
+        
+        .map-bg {
+            background-color: #F1F5F9; /* slate-100 */
+            /* Simple map illusion with repeating linear gradients for roads */
+            background-image: 
+                linear-gradient(#e2e8f0 2px, transparent 2px),
+                linear-gradient(90deg, #e2e8f0 2px, transparent 2px),
+                linear-gradient(#cbd5e1 1px, transparent 1px),
+                linear-gradient(90deg, #cbd5e1 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen py-8">
+
+    <div class="max-w-[400px] w-full mx-auto min-h-[800px] h-screen sm:h-auto bg-white shadow-2xl relative overflow-hidden flex flex-col">
+        
+        <!-- Map Background Region -->
+        <div class="map-bg flex-1 relative flex items-center justify-center">
+            
+            <!-- Top Status Card -->
+            <div class="absolute top-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-4 z-10">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-2">
+                        <!-- Location Icon (gray) -->
+                        <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="font-bold text-lg text-slate-800">You are Offline</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
+                        <span class="text-sm font-medium text-slate-500">Idle</span>
+                    </div>
+                </div>
+                
+                <!-- Go Online Button -->
+                <button class="bg-slate-800 text-white w-full rounded-xl py-4 font-bold text-lg flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-[0.98] transition-all">
+                    <!-- Lightning icon -->
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"></path>
+                    </svg>
+                    Go Online
+                </button>
+            </div>
+
+            <!-- Center Map Marker (Tricycle) -->
+            <div class="flex flex-col items-center z-10 -mt-10">
+                <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center shadow-lg mb-2 border-4 border-white">
+                    <span class="text-3xl">🛺</span>
+                </div>
+                <span class="bg-slate-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+                    Offline
+                </span>
+            </div>
+
+            <!-- Bottom Information Card -->
+            <div class="absolute bottom-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-4 z-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center shrink-0">
+                        <span class="text-2xl">💤</span>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h3 class="font-bold text-slate-800 text-[15px] mb-0.5">You're offline</h3>
+                        <p class="text-[13px] text-slate-500 leading-tight">Toggle online to start receiving ride requests</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <div class="bg-white border-t border-slate-200 flex justify-around py-3 shrink-0 relative z-20 pb-4 sm:pb-3">
+            <!-- Home (Active) -->
+            <button class="flex flex-col items-center gap-1 min-w-[64px]">
+                <svg class="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                </svg>
+                <span class="font-medium text-xs text-emerald-600">Home</span>
+            </button>
+            
+            <!-- Earnings (Inactive) -->
+            <button class="flex flex-col items-center gap-1 min-w-[64px]">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-xs text-slate-400">Earnings</span>
+            </button>
+            
+            <!-- Profile (Inactive) -->
+            <button class="flex flex-col items-center gap-1 min-w-[64px]">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="font-medium text-xs text-slate-400">Profile</span>
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "trigo-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TriGo - Digital Tricycle Ride Booking Platform Monorepo",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "powershell -ExecutionPolicy Bypass -File ./scripts/dev.ps1",
+    "dev:backend": "npm --workspace=apps/trigo-backend run dev",
+    "dev:admin": "npm --workspace=apps/trigo-admin run dev",
+    "dev:flutter": "cd apps/trigo && flutter run -t lib/main.dart",
+    "build:backend": "npm --workspace=apps/trigo-backend run build",
+    "build:admin": "npm --workspace=apps/trigo-admin run build",
+    "db:migrate": "npm --workspace=apps/trigo-backend run migrate",
+    "db:seed": "npm --workspace=apps/trigo-backend run seed",
+    "lint": "eslint apps/trigo-backend apps/trigo-admin --ext .ts,.js,.vue",
+    "test:backend": "npm --workspace=apps/trigo-backend run test"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^9.20.1",
+    "prettier": "^3.5.1",
+    "typescript": "^5.7.3"
+  }
+}

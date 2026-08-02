@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-900">
+
+    <div class="max-w-[400px] mx-auto min-h-screen bg-white shadow-2xl relative overflow-hidden flex flex-col pb-6">
+        
+        <!-- Top bar -->
+        <div class="flex items-center px-4 py-4 bg-slate-50/50">
+            <button class="text-slate-900">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+            </button>
+            <h1 class="flex-1 text-center font-bold text-xl text-slate-900 pr-6">Driver Registration</h1>
+        </div>
+
+        <!-- Icon -->
+        <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mt-4 flex items-center justify-center shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-10 h-10">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+        </div>
+
+        <!-- Form card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mx-4 mt-6 p-6">
+            <div class="flex flex-col">
+                <label class="font-semibold text-sm text-slate-700 mb-1.5">Full Name</label>
+                <input type="text" placeholder="Juan Dela Cruz" class="border border-slate-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors w-full text-sm">
+            </div>
+
+            <div class="flex flex-col mt-4">
+                <label class="font-semibold text-sm text-slate-700 mb-1.5">Phone Number</label>
+                <input type="tel" placeholder="+63 912 345 6789" class="border border-slate-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors w-full text-sm">
+            </div>
+
+            <div class="flex flex-col mt-4">
+                <label class="font-semibold text-sm text-slate-700 mb-1.5">Password</label>
+                <input type="password" placeholder="Create a secure password" class="border border-slate-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors w-full text-sm">
+            </div>
+
+            <div class="flex flex-col mt-4">
+                <label class="font-semibold text-sm text-slate-700 mb-1.5">Plate / Body Number</label>
+                <input type="text" placeholder="ABC-1234" class="border border-slate-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors w-full text-sm">
+            </div>
+
+            <div class="border-t border-slate-200 my-5"></div>
+
+            <label class="font-semibold text-sm text-slate-700 block mb-3">Required Documents</label>
+            
+            <button class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-blue-300 rounded-xl px-4 py-4 text-center bg-blue-50/30 hover:bg-blue-50/50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-blue-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                <span class="text-blue-600 font-medium text-sm">Upload Driver's License</span>
+            </button>
+
+            <button class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-emerald-300 rounded-xl px-4 py-4 text-center mt-3 bg-emerald-50/30 hover:bg-emerald-50/50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-emerald-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                <span class="text-emerald-600 font-medium text-sm">Upload Franchise Documents</span>
+            </button>
+        </div>
+
+        <!-- Below card -->
+        <div class="mx-4 mt-5 flex items-start gap-2">
+            <input type="checkbox" id="terms" class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+            <label for="terms" class="text-sm text-slate-600 leading-snug">
+                I agree to the <a href="#" class="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>
+            </label>
+        </div>
+
+        <div class="px-4 mt-6">
+            <button class="bg-blue-600 text-white w-full rounded-xl py-4 font-bold text-lg shadow-lg shadow-blue-200/50 hover:bg-blue-700 transition-colors">
+                Create Account
+            </button>
+        </div>
+
+        <p class="text-center mt-6 text-slate-600 text-sm mb-4">
+            Already have an account? <a href="#" class="text-blue-600 font-semibold hover:underline">Login</a>
+        </p>
+
+    </div>
+
+</body>
+</html>

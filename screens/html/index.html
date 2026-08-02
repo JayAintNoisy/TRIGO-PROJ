@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIGO Admin — Screen Prototypes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .card-hover { transition: all 0.25s ease; }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-200">
+                    T
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">TRIGO Admin Prototypes</h1>
+                    <p class="text-sm text-slate-500">HTML/TailwindCSS Screen Representations</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full">29 Screens</span>
+                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full">TailwindCSS</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-10">
+
+        <!-- Section: Admin Portal -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900">Admin Portal Screens</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+                <!-- Dashboard -->
+                <a href="admin/admin-dashboard.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-indigo-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">📊</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Dashboard</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Dashboard Overview</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Metric cards, recent rides table, and quick action buttons</p>
+                    </div>
+                </a>
+
+                <!-- Drivers -->
+                <a href="admin/admin-driver.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-orange-600/5 to-amber-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">🚗</div>
+                            <span class="text-xs font-semibold text-orange-700 bg-orange-100 px-3 py-1 rounded-full">Drivers</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Management</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Driver list with ratings, plate numbers, status, and action controls</p>
+                    </div>
+                </a>
+
+                <!-- Passengers -->
+                <a href="admin/admin-passenger.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-green-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">👥</div>
+                            <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">Passengers</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Management</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Passenger list with phone, ride count, ratings, and status</p>
+                    </div>
+                </a>
+
+                <!-- Financial -->
+                <a href="admin/admin-financial.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-green-600/5 to-teal-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">💰</div>
+                            <span class="text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">Financial</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Financial Ledger</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Revenue cards, transaction audit trail, and payment method breakdown</p>
+                    </div>
+                </a>
+
+                <!-- Fare Matrix -->
+                <a href="admin/admin-fare-matrix.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-violet-50 to-purple-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-purple-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">⚙️</div>
+                            <span class="text-xs font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">Fare Matrix</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Fare Matrix Settings</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Live preview, stepper controls for base fare, per-km rate, and multipliers</p>
+                    </div>
+                </a>
+
+                <!-- Safety & Reports -->
+                <a href="admin/admin-safety.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-600/5 to-rose-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">🛡️</div>
+                            <span class="text-xs font-semibold text-red-700 bg-red-100 px-3 py-1 rounded-full">Safety</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Safety & Reports</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">SOS alert monitoring, user complaints, and feedback reports</p>
+                    </div>
+                </a>
+
+                <!-- Communication -->
+                <a href="admin/admin-communication.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-sky-50 to-cyan-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-sky-600/5 to-cyan-600/10"></div>
+                        <div class="relative text-center">
+                            <div class="text-4xl mb-2">💬</div>
+                            <span class="text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1 rounded-full">Communication</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Communication Center</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Announcement composer, audience selector, and notification history</p>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Section: Driver App Screens -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900">Driver App Screens</h2>
+                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Mobile</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+                <!-- Driver Login -->
+                <a href="app/driver-login.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🔑</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Login</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Login</h3>
+                        <p class="text-sm text-slate-500">Phone number & password login with blue hero header</p>
+                    </div>
+                </a>
+
+                <!-- Driver Register -->
+                <a href="app/driver-register.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">📝</div>
+                            <span class="text-xs font-semibold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full">Register</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Registration</h3>
+                        <p class="text-sm text-slate-500">Name, phone, plate number, and document uploads</p>
+                    </div>
+                </a>
+
+                <!-- Driver Offline -->
+                <a href="app/driver-offline.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">😴</div>
+                            <span class="text-xs font-semibold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">Offline</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Offline</h3>
+                        <p class="text-sm text-slate-500">Map view with Go Online toggle and idle status</p>
+                    </div>
+                </a>
+
+                <!-- Driver Waiting Online -->
+                <a href="app/driver-waiting-online.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">📡</div>
+                            <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">Online</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Online / Waiting</h3>
+                        <p class="text-sm text-slate-500">Map with nearby passengers, stats, and Go Offline toggle</p>
+                    </div>
+                </a>
+
+                <!-- Driver Active Ride -->
+                <a href="app/driver-active-ride.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-yellow-50 to-amber-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🛺</div>
+                            <span class="text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">Active Ride</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Active Ride</h3>
+                        <p class="text-sm text-slate-500">Route map, passenger info, fare, call/text, and Arrived button</p>
+                    </div>
+                </a>
+
+                <!-- Driver Earnings -->
+                <a href="app/driver-earnings.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">💵</div>
+                            <span class="text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">Earnings</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Earnings</h3>
+                        <p class="text-sm text-slate-500">Today's earnings, weekly chart, breakdown, and recent trips</p>
+                    </div>
+                </a>
+
+                <!-- Driver Profile -->
+                <a href="app/driver-profile.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">👤</div>
+                            <span class="text-xs font-semibold text-teal-700 bg-teal-100 px-3 py-1 rounded-full">Profile</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Profile</h3>
+                        <p class="text-sm text-slate-500">Green hero, stats, document status, and personal info</p>
+                    </div>
+                </a>
+
+                <!-- Driver Settings -->
+                <a href="app/driver-settings.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-gray-50 to-slate-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">⚙️</div>
+                            <span class="text-xs font-semibold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">Settings</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Driver Settings</h3>
+                        <p class="text-sm text-slate-500">Ride preferences, account, support sections, and stats card</p>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Section: Passenger App Screens -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900">Passenger App Screens</h2>
+                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Mobile</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+                <!-- Passenger Login -->
+                <a href="app/passenger-login.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🔐</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Login</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Login</h3>
+                        <p class="text-sm text-slate-500">Blue hero header, phone &amp; password form</p>
+                    </div>
+                </a>
+
+                <!-- Passenger Register -->
+                <a href="app/passenger-register.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">✍️</div>
+                            <span class="text-xs font-semibold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full">Register</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Registration</h3>
+                        <p class="text-sm text-slate-500">Name, phone, password form with terms agreement</p>
+                    </div>
+                </a>
+
+                <!-- Passenger Home -->
+                <a href="app/passenger-home.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-cyan-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🗺️</div>
+                            <span class="text-xs font-semibold text-cyan-700 bg-cyan-100 px-3 py-1 rounded-full">Home</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Home</h3>
+                        <p class="text-sm text-slate-500">Map, destination input, ride type, passenger count</p>
+                    </div>
+                </a>
+
+                <!-- Pick Rider -->
+                <a href="app/passenger-pick-rider.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-amber-50 to-yellow-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🛺</div>
+                            <span class="text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">Pick Driver</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Choose Your Driver</h3>
+                        <p class="text-sm text-slate-500">Driver cards with rating, fare, ETA, and selection</p>
+                    </div>
+                </a>
+
+                <!-- Active Ride -->
+                <a href="app/passenger-active-ride.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">📍</div>
+                            <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">Active Ride</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Active Ride</h3>
+                        <p class="text-sm text-slate-500">Driver en route, ETA, fare, call/text actions</p>
+                    </div>
+                </a>
+
+                <!-- Rating -->
+                <a href="app/passenger-rating.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">⭐</div>
+                            <span class="text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">Rating</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Ride Complete / Rating</h3>
+                        <p class="text-sm text-slate-500">Star rating, feedback tags, fare summary</p>
+                    </div>
+                </a>
+
+                <!-- History -->
+                <a href="app/passenger-history.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-violet-50 to-purple-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">📋</div>
+                            <span class="text-xs font-semibold text-violet-700 bg-violet-100 px-3 py-1 rounded-full">History</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Ride History</h3>
+                        <p class="text-sm text-slate-500">Past rides with pickup, drop-off, driver, and fare</p>
+                    </div>
+                </a>
+
+                <!-- Profile -->
+                <a href="app/passenger-profile.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">👤</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Profile</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Profile</h3>
+                        <p class="text-sm text-slate-500">Blue hero, addresses, payment methods, and logout</p>
+                    </div>
+                </a>
+
+                <!-- Settings -->
+                <a href="app/passenger-settings.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-gray-50 to-slate-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">⚙️</div>
+                            <span class="text-xs font-semibold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">Settings</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Passenger Settings</h3>
+                        <p class="text-sm text-slate-500">Notification toggles, account, support, and preferences</p>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+            </div>
+        </div>
+
+        <!-- Section: General App Screens -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900">General App Screens</h2>
+                <span class="text-xs font-medium text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">Mobile</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+                <!-- Landing Page -->
+                <a href="app/app-landing.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-100 to-blue-200 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🚀</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Landing</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">App Landing Page</h3>
+                        <p class="text-sm text-slate-500">Splash screen with role selection</p>
+                    </div>
+                </a>
+
+                <!-- New Ride Request (Driver View) -->
+                <a href="app/driver-new-ride-request.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🔔</div>
+                            <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">Alert</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">New Ride Request</h3>
+                        <p class="text-sm text-slate-500">Modal for incoming ride request (Driver)</p>
+                    </div>
+                </a>
+
+                <!-- Start Ride (Driver View) -->
+                <a href="app/driver-start-ride.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">▶️</div>
+                            <span class="text-xs font-semibold text-orange-700 bg-orange-100 px-3 py-1 rounded-full">Start</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">Start Ride</h3>
+                        <p class="text-sm text-slate-500">Passenger boarded, ready to start (Driver)</p>
+                    </div>
+                </a>
+
+                <!-- Driver Ride Complete -->
+                <a href="app/driver-ride-complete.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🏁</div>
+                            <span class="text-xs font-semibold text-teal-700 bg-teal-100 px-3 py-1 rounded-full">Complete</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">Driver Ride Complete</h3>
+                        <p class="text-sm text-slate-500">Arrived at destination (Driver)</p>
+                    </div>
+                </a>
+
+                <!-- Passenger Ride Receipt -->
+                <a href="app/passenger-ride-receipt.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🧾</div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Receipt</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">Ride Receipt</h3>
+                        <p class="text-sm text-slate-500">Detailed fare breakdown and receipt</p>
+                    </div>
+                </a>
+
+                <!-- Notifications -->
+                <a href="app/app-notifications.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">📫</div>
+                            <span class="text-xs font-semibold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full">Alerts</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">Notifications</h3>
+                        <p class="text-sm text-slate-500">App notifications and alerts list</p>
+                    </div>
+                </a>
+
+                <!-- Help & Support -->
+                <a href="app/app-help-support.html" class="card-hover block bg-white rounded-2xl border border-slate-200 overflow-hidden group">
+                    <div class="h-40 bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">❓</div>
+                            <span class="text-xs font-semibold text-sky-700 bg-sky-100 px-3 py-1 rounded-full">Support</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-bold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">Help &amp; Support</h3>
+                        <p class="text-sm text-slate-500">Contact options, hotline, and FAQs</p>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white mt-12">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+            <p class="text-sm text-slate-400">TRIGO Admin Prototypes &mdash; HTML/TailwindCSS Representations</p>
+            <p class="text-sm text-slate-400">Generated from design screens</p>
+        </div>
+    </footer>
+
+</body>
+</html>
+

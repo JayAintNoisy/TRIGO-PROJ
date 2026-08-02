@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+<div class="max-w-[400px] w-full mx-auto min-h-screen bg-white shadow-2xl relative overflow-hidden flex flex-col">
+
+    <!-- Top bar -->
+    <div class="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-100 z-10">
+        <div class="text-slate-600 text-xl cursor-pointer">
+            <!-- Hamburger icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+        </div>
+        <div class="font-black text-xl text-slate-900 tracking-wider">
+            TRIGO
+        </div>
+        <div class="flex items-center">
+            <div class="text-slate-500 relative mr-2 cursor-pointer">
+                <!-- Notification bell -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                <div class="w-2 h-2 bg-red-500 rounded-full absolute -top-0.5 right-0.5 border border-white"></div>
+            </div>
+            <div class="w-10 h-10 bg-blue-600 rounded-full ml-1 overflow-hidden cursor-pointer shadow-sm">
+                <!-- Avatar placeholder -->
+                <img src="https://ui-avatars.com/api/?name=User&background=2563EB&color=fff" alt="Avatar" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </div>
+
+    <!-- Map area -->
+    <div class="bg-gradient-to-b from-slate-100 to-emerald-50/30 relative flex flex-col items-center justify-center py-10" style="height: 250px;">
+        <div class="flex flex-col items-center mt-[-30px]">
+            <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 relative">
+                <!-- Blue circle pulse effect -->
+                <div class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></div>
+                <!-- Navigation icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-white rotate-45 transform -translate-y-0.5 -translate-x-0.5">
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
+            </div>
+            <div class="text-sm text-slate-500 font-medium mt-3 bg-white/80 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm">
+                Your Location
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom sheet -->
+    <div class="bg-white rounded-t-[28px] shadow-[0_-8px_30px_rgb(0,0,0,0.08)] p-6 relative -mt-6 flex-1 flex flex-col z-20">
+        <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
+        
+        <h2 class="text-2xl font-black text-slate-900 mb-2">Where to?</h2>
+        
+        <div class="relative mt-2">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-emerald-500">
+                    <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <input type="text" placeholder="Current Location" class="border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 w-full text-emerald-600 font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors bg-white">
+        </div>
+        
+        <div class="relative mt-3">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-red-500">
+                    <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <input type="text" placeholder="Drop-off Destination" class="border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 w-full text-slate-800 font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+            <!-- Vertical connecting line -->
+            <div class="absolute left-6 -top-3 h-3 border-l-2 border-dashed border-slate-300"></div>
+        </div>
+        
+        <div class="flex gap-3 mt-5 overflow-x-auto pb-1 no-scrollbar">
+            <button class="bg-blue-600 text-white rounded-xl px-5 py-3 font-semibold text-sm whitespace-nowrap flex-1 shadow-md shadow-blue-200">
+                Standard Trike
+            </button>
+            <button class="border border-slate-200 text-slate-600 rounded-xl px-5 py-3 font-medium text-sm whitespace-nowrap flex-1 hover:bg-slate-50 transition-colors">
+                Exclusive Ride
+            </button>
+        </div>
+        
+        <div class="bg-blue-50/60 rounded-xl p-4 mt-5 flex items-center justify-between border border-blue-100">
+            <div>
+                <div class="font-bold text-sm text-slate-800">Number of Passengers</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Fare will be split among passengers</div>
+            </div>
+            <div class="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors font-bold text-lg">
+                    -
+                </button>
+                <div class="text-lg font-bold mx-3 text-slate-800 w-4 text-center">1</div>
+                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors font-bold text-lg">
+                    +
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-auto pt-6">
+            <button class="bg-blue-600 text-white w-full rounded-2xl py-4 font-bold text-lg shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-colors active:scale-[0.98]">
+                Find a Trike
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom nav bar -->
+    <div class="bg-white border-t border-slate-200 flex justify-around py-3 z-30 pb-5">
+        <div class="flex flex-col items-center justify-center cursor-pointer group">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-600 mb-1">
+                <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+                <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+            </svg>
+            <span class="text-[10px] font-semibold text-blue-600">Home</span>
+        </div>
+        <div class="flex flex-col items-center justify-center cursor-pointer group hover:opacity-80 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-slate-400 group-hover:text-slate-600 transition-colors mb-1">
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">History</span>
+        </div>
+        <div class="flex flex-col items-center justify-center cursor-pointer group hover:opacity-80 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-slate-400 group-hover:text-slate-600 transition-colors mb-1">
+                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">Profile</span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
