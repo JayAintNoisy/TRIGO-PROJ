@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { AlertTriangle, CheckCircle, Eye, MessageCircle, ShieldAlert, FileText } from 'lucide-vue-next';
+import { AlertTriangle, CheckCircle, Eye, MessageCircle, ShieldAlert, FileText } from '@lucide/vue';
 import { useApi } from '@/composables/useApi';
 
 const api = useApi();

@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, Bike, Users, DollarSign, TrendingUp, Shield, Megaphone, LogOut } from 'lucide-vue-next';
+import { LayoutDashboard, Bike, Users, DollarSign, TrendingUp, Shield, Megaphone, LogOut } from '@lucide/vue';
 
 const authStore = useAuthStore();
 const router = useRouter();

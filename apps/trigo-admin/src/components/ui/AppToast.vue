@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-vue-next';
+import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from '@lucide/vue';
 
 const props = defineProps({
   message: {

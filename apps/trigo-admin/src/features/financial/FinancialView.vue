@@ -134,7 +134,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Search, DollarSign, Banknote, TrendingUp, CreditCard } from 'lucide-vue-next';
+import { Search, DollarSign, Banknote, TrendingUp, CreditCard } from '@lucide/vue';
 import { useApi } from '@/composables/useApi';
 
 const api = useApi();

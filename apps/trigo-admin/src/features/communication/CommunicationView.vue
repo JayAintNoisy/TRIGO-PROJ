@@ -101,7 +101,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { MessageCircle, Users, Bike, User, Send, Bell } from 'lucide-vue-next';
+import { MessageCircle, Users, Bike, User, Send, Bell } from '@lucide/vue';
 import { useApi } from '@/composables/useApi';
 
 const api = useApi();

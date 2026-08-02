@@ -231,7 +231,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Zap, Minus, Plus, RefreshCw, Save } from 'lucide-vue-next';
+import { Zap, Minus, Plus, RefreshCw, Save } from '@lucide/vue';
 import { useApi } from '@/composables/useApi';
 
 const api = useApi();

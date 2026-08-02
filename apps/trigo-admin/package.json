@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lucide/vue": "^0.475.0",
+    "@lucide/vue": "^1.28.0",
     "@vueuse/core": "^12.5.0",
     "axios": "^1.7.9",
     "pinia": "^2.3.1",

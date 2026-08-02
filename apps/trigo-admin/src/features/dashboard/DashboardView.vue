@@ -133,7 +133,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useApi } from '@/composables/useApi';
-import { Bike, DollarSign, CheckCircle, AlertTriangle, Search, Settings, Bell } from 'lucide-vue-next';
+import { Bike, DollarSign, CheckCircle, AlertTriangle, Search, Settings, Bell } from '@lucide/vue';
 
 const api = useApi();
 const recentRides = ref<any[]>([]);
