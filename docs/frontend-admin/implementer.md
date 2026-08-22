@@ -22,27 +22,30 @@
 apps/trigo-admin/src/
 ├── assets/
 │   └── styles/
-│       └── main.css               # Tailwind CSS v4 entrypoint & @theme definitions
+│       └── main.css               # Tailwind v4 entry + @theme
 ├── components/
-│   ├── ui/                        # Reusable UI primitives (AppButton, AppInput, AppTable, etc.)
-│   └── layout/                    # Layout structure (AppSidebar, AppNavbar, AppLayout)
+│   ├── ui/                        # Primitives (AppButton, AppInput, etc.)
+│   └── layout/                    # Sidebar, Navbar, Layout
 ├── composables/
-│   └── useApi.ts                  # Axios HTTP client instance with auth token headers
+│   └── useApi.ts                  # Axios + auth header + 401 redirect
 ├── features/
 │   ├── auth/                      # Login view & service
-│   ├── dashboard/                 # Stats cards & recent activity
-│   ├── driver-applications/       # Verification list & approval modals
-│   ├── drivers/                   # Driver directory & suspension toggle
-│   ├── rides/                     # All ride history
-│   ├── municipalities/            # Jurisdiction & fare matrix manager
-│   ├── users/                     # User directory
-│   └── tracking/                  # Live GPS map simulation
+│   ├── dashboard/                 # Stats & activity
+│   ├── driver-applications/       # List + review/approve/reject + docs viewer
+│   ├── drivers/                   # Directory & suspension toggle
+│   ├── rides/                     # Ride history
+│   ├── municipalities/            # Jurisdiction + FareMatrix
+│   ├── users/                     # Directory (firstName + lastName)
+│   ├── communication/             # Broadcast
+│   ├── financial/                 # FinancialView
+│   ├── safety/                    # SafetyView
+│   └── tracking/                  # Live GPS map
 ├── router/
-│   └── index.ts                   # Route definitions & guards
+│   └── index.ts                   # Routes & guards
 ├── stores/
-│   └── auth.store.ts              # Auth & session token state
-├── App.vue                        # Root view
-└── main.ts                        # App initialization
+│   └── auth.store.ts              # Auth & token state
+├── App.vue
+└── main.ts
 ```
 
 ---

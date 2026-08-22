@@ -34,14 +34,15 @@ src/features/<domain>/
 
 | Domain | Purpose |
 |--------|---------|
-| `auth` | User registration, login, JWT token refresh, current user profile |
-| `users` | User account directory, profile management |
-| `municipalities` | Municipality jurisdiction boundary definitions, radius check, base fare & per-km fare matrix |
-| `drivers` | Driver verification applications, admin approval/rejection, online status toggle |
-| `rides` | Ride request, driver matching, ride status state machine (`REQUESTED` → `ACCEPTED` → `DRIVER_ARRIVING` → `IN_PROGRESS` → `COMPLETED` / `CANCELLED`), customer ratings |
-| `tracking` | Driver GPS coordinate broadcast (`POST /api/tracking/location`), active fleet positions query |
-| `payments` | Ride payment records & cash payment status |
-| `notifications` | User notifications history & FCM device token registration |
+| `auth` | Register (always `customer`), login, refresh, logout, `/auth/me` (includes `driverProfile`); users use `first_name`/`last_name` |
+| `users` | Directory + profile update (`firstName`/`lastName`/`phone`/`photoUrl`) |
+| `municipalities` | Jurisdictions + fare config (`base_fare`, `per_km_rate`, `exclusive_multiplier`, `min_fare`, `night_surcharge`, `max_passengers`); CRUD + partial updates |
+| `drivers` | App lifecycle `pending`→`reviewing`→`approved`/`rejected`/`suspended`; transactional doc replace; `review`/`approve`/`reject` endpoints; online toggle |
+| `rides` | Hardened state machine (`REQUESTED`→`ACCEPTED`→`DRIVER_ARRIVING`→`IN_PROGRESS`→`COMPLETED`/`CANCELLED`), owner checks, cancel fees, cash completion, idempotent ratings, polling |
+| `tracking` | GPS broadcast + history (`ride_tracking`, `accuracy`), fleet query |
+| `payments` | Cash payment records on ride completion |
+| `notifications` | Persisted inbox + `device_tokens` (unique per user/platform); `POST /broadcast` with audience (`all`/`drivers`/`customers`) |
+| `uploads` | `POST /uploads` (multer, 5 MB, `driver-documents`, JPG/PNG/WEBP/PDF, UUID names) + `GET /uploads/:folder/:filename` (auth, strict pattern) |
 
 ---
 

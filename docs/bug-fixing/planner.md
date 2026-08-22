@@ -7,7 +7,10 @@
 
 ## Investigation Protocol
 
-1. **Reproduction**: Identify whether the bug occurs in Backend Express, Vue Admin Web, or Flutter Mobile.
-2. **Log Inspection**: Inspect un-truncated error logs, Vitest output, or `flutter analyze` diagnostic tracebacks.
-3. **State Machine Verification**: Trace ride status transitions (`REQUESTED` → `ACCEPTED` → `IN_PROGRESS` → `COMPLETED`).
-4. **Security Audit**: Verify package vulnerabilities using `npm audit`.
+1. **Reproduction**: Identify Backend, Vue Admin, or Flutter Mobile.
+2. **Log Inspection**: Inspect un-truncated logs, Vitest output, or `flutter analyze` traces.
+3. **State Machine Verification**:
+   - Rides: `REQUESTED` → `ACCEPTED` → `DRIVER_ARRIVING` → `IN_PROGRESS` → `COMPLETED`/`CANCELLED` (with owner checks + cancel fees).
+   - Drivers: `pending` → `reviewing` → `approved`/`rejected`/`suspended` (review blocks resubmit).
+4. **Driver Gating**: Check `app_router.dart` `_driverBlockedRoutes` + `hasOnboarded()` and `AuthState.driverStatus` handling.
+5. **Security Audit**: `npm audit`.

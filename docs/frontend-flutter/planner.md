@@ -20,37 +20,52 @@
 - **Theme**: `flex_color_scheme` (`FlexThemeData.light`)
 - **Structure**: Monorepo workspace — `apps/trigo/`
 
-### Dual-Role Architecture (Passenger ↔ Driver Toggle)
-The mobile app serves both passengers and drivers natively on mobile devices. Users can switch modes dynamically via the `AppModeSwitch` header widget.
-- **Passenger Mode**: Book tricycle rides, set pickup/dropoff, view live ETA, rate drivers.
-- **Driver Mode**: Go online/offline, receive dispatch ride requests, navigate to pickup, complete rides, view gross earnings.
+### Dual-Role Architecture (Backend-Determined Mode)
+The app serves passengers and drivers on one install. Mode is derived from the backend (`driverStatus`/`role` via `AuthState._modeFor`), not a free toggle. `app_mode_switch.dart` now exports only `enum AppUserMode`.
+- **Passenger Mode**: Book rides, set pickup/dropoff, live ETA, rate drivers.
+- **Driver Mode**: Requires approved `driver_profiles.application_status`; go online/offline, incoming-request modal, earnings.
+- **Verification gating**: `app_router.dart` redirects unverified drivers from `_driverBlockedRoutes` to `/driver/apply` or `/driver/status`; onboarding is gated by `hasOnboarded()` (`trigo_onboarded` in `SharedPreferences`).
 
 ### Key Directory Structure
 ```
 apps/trigo/lib/
 ├── core/
 │   ├── theme/
-│   │   ├── app_theme.dart             # FlexThemeData light theme definitions
-│   │   ├── app_colors.dart            # Brand Blue, Brand Green, Driver Orange tokens
-│   │   └── app_typography.dart        # Text styles (FontWeight.w800 for headings)
+│   │   ├── app_theme.dart             # FlexThemeData light theme
+│   │   ├── app_colors.dart            # Brand tokens
+│   │   └── app_typography.dart        # w800 headings
 │   ├── constants/
-│   │   ├── api_endpoints.dart         # Backend REST API endpoint URLs
-│   │   └── ride_status.dart           # Ride lifecycle constants
+│   │   ├── api_endpoints.dart         # REST URLs
+│   │   └── ride_status.dart           # Ride status constants
 │   ├── router/
-│   │   └── app_router.dart            # go_router configuration with mode routes
+│   │   └── app_router.dart            # GoRouter + driver verification gating
+│   └── network/
+│       ├── api_client.dart            # Dio + token storage
+│       └── auth_interceptor.dart      # Bearer header + refresh
 ├── shared/
-│   └── widgets/
-│       ├── app_button.dart            # Primary, secondary, outline, ghost variants
-│       ├── app_input.dart             # Form text fields with labels
-│       ├── app_card.dart              # Card surface with soft elevation & 24px radius
-│       └── app_mode_switch.dart        # Passenger ↔ Driver toggle widget
+│   ├── widgets/
+│   │   ├── app_button.dart            # Primary/secondary/outline/ghost
+│   │   ├── app_input.dart             # TextFormField + validator/prefix/suffix
+│   │   ├── app_card.dart              # Card, 24px radius, soft shadow
+│   │   ├── app_top_bar.dart           # Blue header with back + centered title
+│   │   ├── app_back_button.dart       # Reusable back with fallback
+│   │   ├── app_scaffold.dart          # Shell with bottom nav
+│   │   └── app_mode_switch.dart       # enum AppUserMode only
+│   └── utils/
+│       ├── input_validators.dart      # required/email/phone/matches/etc.
+│       └── app_snackbar.dart          # Snack helper
 └── features/
-    ├── auth/                          # LoginScreen, RegisterScreen, authProvider
-    ├── home/                          # CustomerHomeScreen, DriverHomeScreen
-    ├── ride_booking/                  # BookingScreen, RideTrackingScreen, RideCompleteScreen
-    ├── driver_application/            # DriverApplicationScreen, DriverStatusScreen
-    ├── earnings/                      # EarningsScreen (hero green card & trips)
-    └── profile/                       # ProfileScreen & mode actions
+     ├── auth/                          # Login, Passenger/DriverRegister,
+     │                                  # OnboardingScreen, authProvider
+     ├── home/                          # CustomerHome, DriverHome, HomeSwitcher
+     ├── ride_booking/                  # Booking, PickDriver, Tracking,
+     │                                  # Complete, Rating, incoming modal
+     ├── driver_application/            # Application + Status + upload_repository
+     ├── earnings/                      # EarningsScreen
+     ├── history/                       # HistoryScreen
+     ├── notifications/                 # NotificationsScreen
+     ├── profile/                       # Profile + Settings
+     └── support/                       # HelpSupportScreen
 ```
 
 ---
@@ -80,8 +95,10 @@ When asked to plan a new Flutter feature or screen update, follow these steps in
 
 ## Coding Standards (for the plan to reference)
 
-- **No Deprecated APIs**: Use `.withValues(alpha: ...)` instead of `.withOpacity()`, and `surfaceContainerHighest` instead of `surfaceVariant`.
-- **Font Weights**: Use `FontWeight.w800` for extrabold text.
-- **Theme Consistency**: All widgets reference `Theme.of(context)` or `FlexThemeData`.
-- **Icons & Styling**: Do NOT use emojis for UI icons; always use standard Flutter/Material Icons. Prefer soft shadows over hard borders for elevated surfaces, and use lighter colors for dividers.
-- **Static Analysis**: Code must pass `flutter analyze` with 0 errors and 0 warnings.
+- **No Deprecated APIs**: `.withValues(alpha:)` not `.withOpacity()`; `surfaceContainerHighest` not `surfaceVariant`; `activeThumbColor` not `activeColor`.
+- **Font Weights**: `FontWeight.w800` for extrabold.
+- **Theme Consistency**: Reference `Theme.of(context)` or `FlexThemeData`.
+- **Forms**: Wrap inputs in `Form` + `GlobalKey<FormState>`; `AppInput` is `TextFormField` with `validator`/`prefixIcon`/`suffixIcon`; use `InputValidators` (`required`, `email`, `phone`, `minLength`, `matches`, `driverLicense`, `plateNumber`).
+- **Headers**: Use `AppTopBar` (blue, centered, `AppBackButton`) not bare `AppBar`.
+- **Icons & Styling**: No emojis; soft `BoxShadow` with `alpha:0.05` blur 10; `grey.shade100/200` for dividers.
+- **Static Analysis**: `flutter analyze` 0 errors; `flutter test` must pass.

@@ -20,6 +20,7 @@
 
 ## Pre-Commit Verification Checklist
 
-1. Run Vitest suite: `npm run test:backend`. All 13 tests must pass.
-2. Run TypeScript compilation check: `npx tsc --noEmit` inside `apps/trigo-backend/`.
-3. Verify zero `any` types.
+1. Run Vitest: `npm run test:backend`. All 30 tests must pass.
+2. Type-check: `npx tsc --noEmit` in `apps/trigo-backend/` (or `npm run build:backend`).
+3. Verify zero `any` types; `uploads/` is gitignored (runtime files, use multer memory storage).
+4. Schema note: `users` uses `first_name`/`last_name`; `driver_profiles.application_status` includes `reviewing`.

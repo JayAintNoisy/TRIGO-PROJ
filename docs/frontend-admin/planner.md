@@ -51,8 +51,8 @@ All design tokens are configured in `src/assets/styles/main.css` under the `@the
 | Rounded Corners | `rounded-2xl` (24px), `rounded-xl` (12px), `rounded-full` | Friendly rounded component boundaries |
 
 ### Existing Views
-| Domain | View Component | File Path |
-|--------|----------------|-----------|
+| Domain | View | File Path |
+|--------|------|-----------|
 | `auth` | `AuthLogin.vue` | `src/features/auth/AuthLogin.vue` |
 | `dashboard` | `DashboardView.vue` | `src/features/dashboard/DashboardView.vue` |
 | `driver-applications` | `DriverApplicationsList.vue` | `src/features/driver-applications/DriverApplicationsList.vue` |
@@ -62,9 +62,16 @@ All design tokens are configured in `src/assets/styles/main.css` under the `@the
 | `users` | `UsersList.vue` | `src/features/users/UsersList.vue` |
 | `tracking` | `TrackingView.vue` | `src/features/tracking/TrackingView.vue` |
 | `communication`| `CommunicationView.vue` | `src/features/communication/CommunicationView.vue` |
-| `financial`    | `FinancialView.vue` | `src/features/financial/FinancialView.vue` |
-| `fare-matrix`  | `FareMatrix.vue` | `src/features/fare-matrix/FareMatrix.vue` |
-| `safety`       | `SafetyView.vue` | `src/features/safety/SafetyView.vue` |
+| `financial` | `FinancialView.vue` | `src/features/financial/FinancialView.vue` |
+| `fare-matrix` | `FareMatrix.vue` | `src/features/fare-matrix/FareMatrix.vue` |
+| `safety` | `SafetyView.vue` | `src/features/safety/SafetyView.vue` |
+
+#### Recent View Enhancements (since `450e01b`)
+- `UsersList.vue`: renders `firstName` + `lastName`.
+- `DriverApplicationsList.vue`: status filters, `review`/`approve`/`reject` actions, authenticated blob docs viewer.
+- `FareMatrix.vue`: per-municipality edits for `base_fare`, `per_km_rate`, `exclusive_multiplier`, `min_fare`, `night_surcharge`, `max_passengers`.
+- `CommunicationView.vue`: broadcast to `all`/`drivers`/`customers` with recipient counts.
+- `useApi.ts`: 401 interceptor redirects to login.
 
 ---
 

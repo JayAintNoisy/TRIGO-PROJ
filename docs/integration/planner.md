@@ -18,14 +18,25 @@
 
 When planning API integration:
 1. Define unified JSON API response shape:
-   ```json
-   {
-     "success": true,
-     "data": {},
-     "error": null
-   }
-   ```
+    ```json
+    {
+      "success": true,
+      "data": {},
+      "error": null
+    }
+    ```
 2. Verify token storage:
-   - Web Admin: `localStorage.setItem('trigo_admin_token', token)`
-   - Flutter App: `SharedPreferences` token persistence
+    - Web Admin: `localStorage.setItem('trigo_admin_token', token)`
+    - Flutter App: `SharedPreferences` token persistence
 3. Handle 401 Unauthorized token refresh sequence.
+
+### Endpoints Added Since `450e01b`
+| Area | Method & Path | Notes |
+|------|---------------|-------|
+| `uploads` | `POST /api/uploads` + `GET /api/uploads/:folder/:filename` | Multer, `driver-documents`, 5 MB, auth, strict filename pattern |
+| `drivers` | `POST /drivers/applications`, `PATCH .../review`/`approve`/`reject`, `GET /drivers/applications/:id` (with docs) | Transactional doc replace; reviewing status |
+| `municipalities` | `PATCH /municipalities/:id`, `DELETE /municipalities/:id` | Partial fare-matrix updates |
+| `rides` | `POST /rides`, `PATCH /rides/:id/...`, `GET /rides/available`, `POST /rides/:id/rate` | Owner checks, cancel fees, idempotent ratings |
+| `tracking` | `POST /tracking/location`, `GET /tracking/ride/:id` | `accuracy` + history points |
+| `notifications` | `POST /notifications/broadcast`, `POST /notifications/device-token` | Audience `all`/`drivers`/`customers`; `device_tokens` unique per user/platform |
+| `auth` | `POST /auth/logout`, `GET /auth/me` (includes `driverProfile`) | First/last name fields |
