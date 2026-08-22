@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const DRIVER_SELECT = `
   SELECT dp.*,
-         u.name  AS user_name,
+         CONCAT_WS(' ', u.first_name, u.last_name) AS user_name,
          u.phone AS user_phone,
          u.email AS user_email,
          m.name  AS municipality_name

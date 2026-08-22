@@ -36,7 +36,8 @@ class AuthRepository {
   Future<AuthResponse> register({
     required String email,
     required String password,
-    required String name,
+    required String firstName,
+    required String lastName,
     required String phone,
     String? role,
   }) async {
@@ -46,7 +47,8 @@ class AuthRepository {
         data: {
           'email': email,
           'password': password,
-          'name': name,
+          'firstName': firstName,
+          'lastName': lastName,
           'phone': phone,
           if (role != null) 'role': role,
         },

@@ -8,7 +8,8 @@ describe('UsersService', () => {
   const mockUser = {
     id: '00000000-0000-0000-0000-000000000001',
     email: 'admin@trigo.ph',
-    name: 'Admin User',
+    firstName: 'Admin',
+    lastName: 'User',
     phone: '09170000000',
     role: USER_ROLE.ADMIN,
     createdAt: new Date(),

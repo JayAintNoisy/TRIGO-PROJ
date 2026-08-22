@@ -14,11 +14,11 @@ export const seedDatabase = async () => {
   const customerPasswordHash = await bcrypt.hash('customer123', 10);
 
   const seedSql = `
-    INSERT INTO users (id, email, password_hash, name, phone, role)
+    INSERT INTO users (id, email, password_hash, first_name, last_name, phone, role)
     VALUES 
-      ('00000000-0000-0000-0000-000000000001', 'admin@trigo.ph', '${passwordHash}', 'Admin User', '09170000000', 'admin'),
-      ('00000000-0000-0000-0000-000000000002', 'driver@trigo.ph', '${driverPasswordHash}', 'Juan Dela Cruz', '09171112222', 'driver'),
-      ('00000000-0000-0000-0000-000000000003', 'customer@trigo.ph', '${customerPasswordHash}', 'Maria Clara', '09173334444', 'customer')
+      ('00000000-0000-0000-0000-000000000001', 'admin@trigo.ph', '${passwordHash}', 'Admin', 'User', '09170000000', 'admin'),
+      ('00000000-0000-0000-0000-000000000002', 'driver@trigo.ph', '${driverPasswordHash}', 'Juan', 'Dela Cruz', '09171112222', 'driver'),
+      ('00000000-0000-0000-0000-000000000003', 'customer@trigo.ph', '${customerPasswordHash}', 'Maria', 'Clara', '09173334444', 'customer')
     ON CONFLICT (email) DO NOTHING;
 
     INSERT INTO municipalities (id, name, province, center_lat, center_lng, radius_km, base_fare, per_km_rate)

@@ -4,11 +4,12 @@ import { USER_ROLE } from '../../shared/constants/roles';
 
 export class UsersRepository {
   async findAll(): Promise<UserDetail[]> {
-    const res = await pool.query('SELECT id, email, name, phone, role, profile_photo_url, created_at, updated_at FROM users ORDER BY created_at DESC');
+    const res = await pool.query('SELECT id, email, first_name, last_name, phone, role, profile_photo_url, created_at, updated_at FROM users ORDER BY created_at DESC');
     return res.rows.map((row) => ({
       id: row.id,
       email: row.email,
-      name: row.name,
+      firstName: row.first_name,
+      lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
       profilePhotoUrl: row.profile_photo_url,
@@ -18,14 +19,15 @@ export class UsersRepository {
   }
 
   async findById(id: string): Promise<UserDetail | null> {
-    const res = await pool.query('SELECT id, email, name, phone, role, profile_photo_url, created_at, updated_at FROM users WHERE id = $1', [id]);
+    const res = await pool.query('SELECT id, email, first_name, last_name, phone, role, profile_photo_url, created_at, updated_at FROM users WHERE id = $1', [id]);
     if (res.rows.length === 0) return null;
 
     const row = res.rows[0];
     return {
       id: row.id,
       email: row.email,
-      name: row.name,
+      firstName: row.first_name,
+      lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
       profilePhotoUrl: row.profile_photo_url,
@@ -39,9 +41,13 @@ export class UsersRepository {
     const values: any[] = [];
     let idx = 1;
 
-    if (input.name) {
-      fields.push(`name = $${idx++}`);
-      values.push(input.name);
+    if (input.firstName) {
+      fields.push(`first_name = $${idx++}`);
+      values.push(input.firstName);
+    }
+    if (input.lastName) {
+      fields.push(`last_name = $${idx++}`);
+      values.push(input.lastName);
     }
     if (input.phone) {
       fields.push(`phone = $${idx++}`);

@@ -3,7 +3,8 @@ import { USER_ROLE } from '../../shared/constants/roles';
 export interface UserDetail {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   role: USER_ROLE;
   profilePhotoUrl?: string | null;
@@ -12,7 +13,8 @@ export interface UserDetail {
 }
 
 export interface UpdateProfileInput {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   profilePhotoUrl?: string;
 }

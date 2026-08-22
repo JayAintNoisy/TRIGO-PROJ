@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 const RIDE_SELECT = `
   SELECT r.*,
-         cu.name  AS customer_name,
+         CONCAT_WS(' ', cu.first_name, cu.last_name) AS customer_name,
          cu.phone AS customer_phone,
-         du.name  AS driver_name,
+         CONCAT_WS(' ', du.first_name, du.last_name) AS driver_name,
          du.phone AS driver_phone,
          m.name   AS municipality_name,
          dp.tricycle_plate_number AS tricycle_plate_number

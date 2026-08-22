@@ -21,7 +21,7 @@
         <template #rows>
           <tr v-for="user in users" :key="user.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-mono text-xs text-brand-slate-500">{{ user.id.slice(0, 8) }}...</td>
-            <td class="p-3 font-semibold text-brand-slate-900">{{ user.name }}</td>
+            <td class="p-3 font-semibold text-brand-slate-900">{{ user.firstName }} {{ user.lastName }}</td>
             <td class="p-3 text-brand-slate-700">{{ user.email }}</td>
             <td class="p-3 font-mono text-xs text-brand-slate-700">{{ user.phone }}</td>
             <td class="p-3">

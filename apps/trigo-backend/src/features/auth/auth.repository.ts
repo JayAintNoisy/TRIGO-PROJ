@@ -13,7 +13,8 @@ export class AuthRepository {
       id: row.id,
       email: row.email,
       passwordHash: row.password_hash,
-      name: row.name,
+      firstName: row.first_name,
+      lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
       profilePhotoUrl: row.profile_photo_url,
@@ -31,7 +32,8 @@ export class AuthRepository {
       id: row.id,
       email: row.email,
       passwordHash: row.password_hash,
-      name: row.name,
+      firstName: row.first_name,
+      lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
       profilePhotoUrl: row.profile_photo_url,
@@ -51,13 +53,14 @@ export class AuthRepository {
     };
 
     await pool.query(
-      `INSERT INTO users (id, email, password_hash, name, phone, role, profile_photo_url, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO users (id, email, password_hash, first_name, last_name, phone, role, profile_photo_url, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         newUser.id,
         newUser.email,
         newUser.passwordHash,
-        newUser.name,
+        newUser.firstName,
+        newUser.lastName,
         newUser.phone,
         newUser.role,
         newUser.profilePhotoUrl || null,

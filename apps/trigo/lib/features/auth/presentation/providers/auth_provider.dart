@@ -1,23 +1,23 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/router/app_router.dart';
 import '../../data/auth_repository.dart';
+import '../../data/auth_response.dart';
 
-const String _kActiveMode = 'trigo_mode';
+const String _kOnboarded = 'trigo_onboarded';
 
-/// True once the user has committed to a passenger or driver role.
-/// First-run users without a stored mode see the onboarding showcase.
-Future<bool> hasStoredMode() async {
+/// True once the user has successfully logged in or registered; returning
+/// users skip the onboarding showcase and land on Login.
+Future<bool> hasOnboarded() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.containsKey(_kActiveMode);
+  return prefs.getBool(_kOnboarded) ?? false;
 }
 
-Future<void> _persistMode(AppUserMode mode) async {
+Future<void> _markOnboarded() async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString(_kActiveMode, mode.name);
+  await prefs.setBool(_kOnboarded, true);
 }
 
 class AuthState {
@@ -31,6 +31,7 @@ class AuthState {
   final String? role;
   final String? phone;
   final String? profilePhotoUrl;
+  final String? driverStatus;
   final AppUserMode activeMode;
 
   const AuthState({
@@ -44,6 +45,7 @@ class AuthState {
     this.role,
     this.phone,
     this.profilePhotoUrl,
+    this.driverStatus,
     this.activeMode = AppUserMode.customer,
   });
 
@@ -58,6 +60,7 @@ class AuthState {
     String? role,
     String? phone,
     String? profilePhotoUrl,
+    String? driverStatus,
     AppUserMode? activeMode,
     bool clearError = false,
     bool clearUser = false,
@@ -74,6 +77,7 @@ class AuthState {
       phone: clearUser ? null : (phone ?? this.phone),
       profilePhotoUrl:
           clearUser ? null : (profilePhotoUrl ?? this.profilePhotoUrl),
+      driverStatus: clearUser ? null : (driverStatus ?? this.driverStatus),
       activeMode: activeMode ?? this.activeMode,
     );
   }
@@ -88,7 +92,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   @override
   set state(AuthState newState) {
-    authRedirectNotifier.value = newState.isAuthenticated;
+    authRedirectNotifier.value = newState;
     super.state = newState;
   }
 
@@ -96,10 +100,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await _repository.login(email, password);
-      final activeMode = response.user.role == 'driver'
-          ? AppUserMode.driver
-          : AppUserMode.customer;
-      await _persistMode(activeMode);
+      await _markOnboarded();
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -110,7 +111,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: response.user.role,
         phone: response.user.phone,
         profilePhotoUrl: response.user.profilePhotoUrl,
-        activeMode: activeMode,
+        driverStatus: response.user.driverStatus,
+        activeMode: _modeFor(response.user),
       );
     } catch (e) {
       state = state.copyWith(
@@ -123,7 +125,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> register({
     required String email,
     required String password,
-    required String name,
+    required String firstName,
+    required String lastName,
     required String phone,
     required bool asDriver,
   }) async {
@@ -132,13 +135,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _repository.register(
         email: email,
         password: password,
-        name: name,
+        firstName: firstName,
+        lastName: lastName,
         phone: phone,
       );
       // The registration choice commits the user's initial mode permanently
       final activeMode =
           asDriver ? AppUserMode.driver : AppUserMode.customer;
-      await _persistMode(activeMode);
+      await _markOnboarded();
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -149,6 +153,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: response.user.role,
         phone: response.user.phone,
         profilePhotoUrl: response.user.profilePhotoUrl,
+        driverStatus: response.user.driverStatus,
         activeMode: activeMode,
       );
     } catch (e) {
@@ -160,24 +165,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> tryAutoLogin() async {
-    final prefs = await SharedPreferences.getInstance();
     final token = await tokenProvider.getToken();
     if (token == null) return;
 
     state = state.copyWith(isLoading: true);
     try {
       final user = await _repository.getCurrentUser();
-      // Drivers resume in whichever mode they last used
-      var activeMode =
-          user.role == 'driver' ? AppUserMode.driver : AppUserMode.customer;
-      if (user.role == 'driver' &&
-          prefs.getString(_kActiveMode) == AppUserMode.customer.name) {
-        activeMode = AppUserMode.customer;
-      }
-      // Persist so returning users skip the showcase on the next cold start
-      if (!prefs.containsKey(_kActiveMode)) {
-        await prefs.setString(_kActiveMode, activeMode.name);
-      }
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -188,23 +181,41 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: user.role,
         phone: user.phone,
         profilePhotoUrl: user.profilePhotoUrl,
-        activeMode: activeMode,
+        driverStatus: user.driverStatus,
+        activeMode: _modeFor(user),
       );
     } catch (_) {
       state = const AuthState();
     }
   }
 
-  void toggleMode(AppUserMode mode) {
-    // Only approved drivers may enter driving mode; debug builds bypass the
-    // guard so either UI can be previewed with any account
-    if (!kDebugMode && mode == AppUserMode.driver && state.role != 'driver') {
-      return;
+  /// Re-fetches the current user so role/status changes (e.g. an approval)
+  /// reflect immediately without a full re-login.
+  Future<void> refreshCurrentUser() async {
+    try {
+      final user = await _repository.getCurrentUser();
+      state = state.copyWith(
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        profilePhotoUrl: user.profilePhotoUrl,
+        driverStatus: user.driverStatus,
+        activeMode: _modeFor(user),
+      );
+    } catch (_) {
+      // Keep the current session; a failed refresh is non-fatal.
     }
-    state = state.copyWith(activeMode: mode);
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setString(_kActiveMode, mode.name);
-    });
+  }
+
+  /// The mode is determined by the backend response: an account with a driver
+  /// profile (any application status) or a driver role is a driver account;
+  /// everyone else is a customer. Users cannot switch freely.
+  AppUserMode _modeFor(UserData user) {
+    return user.driverStatus != null || user.role == 'driver'
+        ? AppUserMode.driver
+        : AppUserMode.customer;
   }
 
   Future<void> logout() async {

@@ -4,7 +4,8 @@ export interface UserEntity {
   id: string;
   email: string;
   passwordHash: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   role: USER_ROLE;
   profilePhotoUrl?: string | null;
@@ -15,7 +16,8 @@ export interface UserEntity {
 export interface RegisterInput {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
 }
 
@@ -30,7 +32,8 @@ export interface AuthResponse {
   user: {
     id: string;
     email: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     role: USER_ROLE;
     profilePhotoUrl?: string | null;

@@ -9,7 +9,8 @@ export const migrate = async () => {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
-      name VARCHAR(255) NOT NULL,
+      first_name VARCHAR(255) NOT NULL,
+      last_name VARCHAR(255) NOT NULL,
       phone VARCHAR(20) NOT NULL,
       role VARCHAR(20) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')),
       profile_photo_url TEXT,
@@ -146,6 +147,26 @@ export const migrate = async () => {
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS max_passengers INTEGER DEFAULT 4;
     CREATE UNIQUE INDEX IF NOT EXISTS ride_ratings_ride_unique ON ride_ratings (ride_id);
     CREATE INDEX IF NOT EXISTS ride_tracking_ride_idx ON ride_tracking (ride_id);
+    DO $$
+    BEGIN
+      -- Split the legacy single name column into first_name / last_name,
+      -- but only when the legacy column still exists (fresh DBs already
+      -- create first_name/last_name and have no name column)
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'name'
+      ) THEN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(255);
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(255);
+        UPDATE users
+           SET first_name = COALESCE(NULLIF(SPLIT_PART(name, ' ', 1), ''), ''),
+               last_name = COALESCE(NULLIF(TRIM(SUBSTRING(name FROM POSITION(' ' IN name) + 1)), ''), '')
+         WHERE first_name IS NULL OR last_name IS NULL;
+        ALTER TABLE users ALTER COLUMN first_name SET NOT NULL;
+        ALTER TABLE users ALTER COLUMN last_name SET NOT NULL;
+        ALTER TABLE users DROP COLUMN IF EXISTS name;
+      END IF;
+    END $$;
     DO $$
     BEGIN
       -- Widen the application status check to include 'reviewing'

@@ -20,7 +20,8 @@ describe('AuthService', () => {
     const res = await authService.register({
       email: testEmail,
       password: 'password123',
-      name: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
       phone: '+639123456789',
     });
 
@@ -34,7 +35,8 @@ describe('AuthService', () => {
       id: '00000000-0000-0000-0000-000000000003',
       email: 'customer@trigo.ph',
       passwordHash: bcrypt.hashSync('customer123', 10),
-      name: 'Maria Clara',
+      firstName: 'Maria',
+      lastName: 'Clara',
       phone: '09173334444',
       role: USER_ROLE.CUSTOMER,
       createdAt: new Date(),

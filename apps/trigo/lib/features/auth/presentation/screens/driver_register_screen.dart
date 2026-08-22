@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/utils/input_validators.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_input.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../providers/auth_provider.dart';
 import '../../../../shared/utils/app_snackbar.dart';
 
@@ -15,38 +17,31 @@ class DriverRegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _fieldError;
+  final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  bool _validateFields() {
-    if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _phoneController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
-      setState(() => _fieldError = 'Please fill in all fields');
-      return false;
-    }
-    setState(() => _fieldError = null);
-    return true;
-  }
-
   Future<void> _handleRegister() async {
-    if (!_validateFields()) return;
+    if (!_formKey.currentState!.validate()) return;
 
     await ref.read(authProvider.notifier).register(
-          name: _nameController.text.trim(),
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
           email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
           password: _passwordController.text,
@@ -73,13 +68,15 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Driver Registration')),
+      appBar: const AppTopBar(title: 'Driver Registration'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Start Earning Today',
                 style: theme.textTheme.headlineMedium
@@ -92,10 +89,26 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              AppInput(
-                label: 'Full Name',
-                hint: 'Juan Dela Cruz',
-                controller: _nameController,
+              Row(
+                children: [
+                  Expanded(
+                    child: AppInput(
+                      label: 'First Name',
+                      hint: 'Juan',
+                      controller: _firstNameController,
+                      validator: InputValidators.required,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppInput(
+                      label: 'Last Name',
+                      hint: 'Dela Cruz',
+                      controller: _lastNameController,
+                      validator: InputValidators.required,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               AppInput(
@@ -103,6 +116,7 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
                 hint: 'user@trigo.ph',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                validator: InputValidators.email,
               ),
               const SizedBox(height: 16),
               AppInput(
@@ -110,6 +124,7 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
                 hint: '+63 917 123 4567',
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
+                validator: InputValidators.phone,
               ),
               const SizedBox(height: 16),
               AppInput(
@@ -117,6 +132,17 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                 controller: _passwordController,
                 isPassword: true,
+                validator: (value) => InputValidators.minLength(
+                    6, value, 'Password must be at least 6 characters'),
+              ),
+              const SizedBox(height: 16),
+              AppInput(
+                label: 'Confirm Password',
+                hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                controller: _confirmPasswordController,
+                isPassword: true,
+                validator: (value) => InputValidators.matches(
+                    _passwordController.text, value),
               ),
               Container(
                 margin: const EdgeInsets.only(top: 16),
@@ -145,17 +171,6 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
                   ],
                 ),
               ),
-              if (_fieldError != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _fieldError!,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFDC2626),
-                  ),
-                ),
-              ],
               const SizedBox(height: 32),
               AppButton(
                 label: 'Continue to Verification',
@@ -193,6 +208,7 @@ class _DriverRegisterScreenState extends ConsumerState<DriverRegisterScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

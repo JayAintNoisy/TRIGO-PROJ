@@ -22,7 +22,8 @@ export class AuthService {
     const user = await this.authRepository.createUser({
       email: input.email.toLowerCase(),
       passwordHash,
-      name: input.name,
+      firstName: input.firstName,
+      lastName: input.lastName,
       phone: input.phone,
       // Public registration always starts as customer; drivers upgrade only
       // through the application approval flow
@@ -55,7 +56,7 @@ export class AuthService {
       }
 
       const accessToken = jwt.sign(
-        { id: user.id, email: user.email, role: user.role, name: user.name },
+        { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
         env.JWT_SECRET,
         { expiresIn: '1d' }
       );
@@ -75,7 +76,8 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       phone: user.phone,
       role: user.role,
       profilePhotoUrl: user.profilePhotoUrl,
@@ -88,16 +90,19 @@ export class AuthService {
     return { success: true };
   }
 
-  private generateTokensAndResponse(user: any): AuthResponse {
+  private async generateTokensAndResponse(user: any): Promise<AuthResponse> {
     const payload = {
       id: user.id,
       email: user.email,
       role: user.role,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
 
     const accessToken = jwt.sign(payload, env.JWT_SECRET, { expiresIn: '1d' });
     const refreshToken = jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+    const driverProfile = await this.driversRepository.findByUserId(user.id);
 
     return {
       accessToken,
@@ -105,10 +110,12 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         phone: user.phone,
         role: user.role,
         profilePhotoUrl: user.profilePhotoUrl,
+        driverProfile: driverProfile || null,
       },
     };
   }
