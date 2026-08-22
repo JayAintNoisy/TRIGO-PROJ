@@ -158,7 +158,7 @@ class SettingsScreen extends ConsumerWidget {
             child: TextButton(
               onPressed: () {
                 ref.read(authProvider.notifier).logout();
-                context.go('/landing');
+                context.go('/login');
               },
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFFFEE2E2), // red-100

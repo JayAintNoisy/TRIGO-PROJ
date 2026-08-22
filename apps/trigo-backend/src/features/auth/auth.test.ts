@@ -22,7 +22,6 @@ describe('AuthService', () => {
       password: 'password123',
       name: 'Test User',
       phone: '+639123456789',
-      role: USER_ROLE.CUSTOMER,
     });
 
     expect(res.accessToken).toBeDefined();

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -180,6 +181,73 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            // One-tap passenger/driver switching — approved drivers only,
+            // or any account while debugging
+            if (kDebugMode || authState.role == 'driver')
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                transform: Matrix4.translationValues(0, -16, 0),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.swap_horiz_rounded,
+                            size: 20, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text(
+                          'Active Mode',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isDriver
+                          ? 'You are currently using TriGo as a driver'
+                          : 'You are currently booking as a passenger',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: AppModeSwitch(
+                        currentMode: authState.activeMode,
+                        onModeChanged: (mode) {
+                          if (mode == authState.activeMode) return;
+                          ref.read(authProvider.notifier).toggleMode(mode);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(mode == AppUserMode.driver
+                                  ? 'You\u2019re now driving \u2014 go online '
+                                      'to receive requests'
+                                  : 'Switched to passenger mode'),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               transform: Matrix4.translationValues(0, -16, 0),
@@ -278,11 +346,11 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(
                 width: double.infinity,
-                child: TextButton.icon(
-                  onPressed: () {
-                    ref.read(authProvider.notifier).logout();
-                    context.go('/landing');
-                  },
+                 child: TextButton.icon(
+                   onPressed: () {
+                     ref.read(authProvider.notifier).logout();
+                     context.go('/login');
+                   },
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xFFFEF2F2),
                     foregroundColor: const Color(0xFFEF4444),

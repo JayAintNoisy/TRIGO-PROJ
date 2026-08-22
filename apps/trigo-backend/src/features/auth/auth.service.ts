@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthRepository } from './auth.repository';
 import { RegisterInput, LoginInput, AuthResponse } from './auth.types';
+import { DriversRepository } from '../drivers/drivers.repository';
 import { AppError } from '../../shared/errors/app-error';
 import { ERROR_CODES } from '../../shared/errors/error-codes';
 import { env } from '../../env';
@@ -9,6 +10,7 @@ import { USER_ROLE } from '../../shared/constants/roles';
 
 export class AuthService {
   private authRepository = new AuthRepository();
+  private driversRepository = new DriversRepository();
 
   async register(input: RegisterInput): Promise<AuthResponse> {
     const existing = await this.authRepository.findByEmail(input.email);
@@ -22,7 +24,9 @@ export class AuthService {
       passwordHash,
       name: input.name,
       phone: input.phone,
-      role: input.role || USER_ROLE.CUSTOMER,
+      // Public registration always starts as customer; drivers upgrade only
+      // through the application approval flow
+      role: USER_ROLE.CUSTOMER,
     });
 
     return this.generateTokensAndResponse(user);
@@ -65,8 +69,9 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await this.authRepository.findById(userId);
     if (!user) {
-      throw new AppError('User not found', 44, ERROR_CODES.NOT_FOUND);
+      throw new AppError('User not found', 404, ERROR_CODES.NOT_FOUND);
     }
+    const driverProfile = await this.driversRepository.findByUserId(userId);
     return {
       id: user.id,
       email: user.email,
@@ -74,7 +79,13 @@ export class AuthService {
       phone: user.phone,
       role: user.role,
       profilePhotoUrl: user.profilePhotoUrl,
+      driverProfile: driverProfile || null,
     };
+  }
+
+  // Stateless JWTs cannot be revoked server-side; the client discards its tokens
+  async logout(): Promise<{ success: boolean }> {
+    return { success: true };
   }
 
   private generateTokensAndResponse(user: any): AuthResponse {

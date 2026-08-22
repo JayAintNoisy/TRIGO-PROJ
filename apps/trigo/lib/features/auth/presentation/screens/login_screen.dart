@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
-import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../../shared/utils/app_snackbar.dart';
+import '../../../../shared/widgets/app_back_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -13,10 +14,27 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(text: 'customer@trigo.ph');
-  final _passwordController = TextEditingController(text: 'customer123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Demo credentials only during development
+    if (kDebugMode) {
+      _emailController.text = 'customer@trigo.ph';
+      _passwordController.text = 'customer123';
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleLogin() async {
     await ref.read(authProvider.notifier).login(
@@ -36,7 +54,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isDriver = authState.activeMode == AppUserMode.driver;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -55,29 +72,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   children: [
                     // Header Row
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                          ),
-                          onPressed: () => context.pop(),
-                        ),
+                        AppBackButton(iconColor: Colors.white),
                         Row(
                           children: [
-                            if (isDriver) ...[
-                              const Icon(Icons.electric_rickshaw, color: Colors.white, size: 20),
-                              const SizedBox(width: 8),
-                            ],
                             Text(
-                              isDriver ? 'Driver Login' : 'Passenger Login',
-                              style: const TextStyle(
+                              'Login',
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
@@ -86,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ],
                         ),
                         // Invisible placeholder for balance
-                        const SizedBox(width: 48), 
+                        SizedBox(width: 48),
                       ],
                     ),
                     
@@ -369,7 +372,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => context.push('/register'),
+                          onPressed: () => context.push('/register/passenger'),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(0, 0),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/register_screen.dart';
-import '../../features/auth/presentation/screens/landing_screen.dart';
-import '../../features/home/presentation/screens/customer_home_screen.dart';
+import '../../features/auth/presentation/screens/passenger_register_screen.dart';
+import '../../features/auth/presentation/screens/driver_register_screen.dart';
+import '../../features/home/presentation/screens/home_switcher.dart';
 import '../../features/ride_booking/presentation/screens/booking_screen.dart';
 import '../../features/ride_booking/presentation/screens/ride_tracking_screen.dart';
 import '../../features/ride_booking/presentation/screens/ride_complete_screen.dart';
@@ -36,27 +38,41 @@ final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/landing',
   refreshListenable: authRedirectNotifier,
-  redirect: (context, state) {
+  redirect: (context, state) async {
     final isAuth = authRedirectNotifier.value;
+    final location = state.matchedLocation;
     final isOnProtected =
-        _protectedRoutes.any((r) => state.matchedLocation.startsWith(r));
+        _protectedRoutes.any((r) => location.startsWith(r));
 
-    if (isOnProtected && !isAuth) return '/landing';
-    if (state.matchedLocation == '/landing' && isAuth) return '/home';
+    if (isOnProtected && !isAuth) return '/login';
+
+    final authPages = ['/landing', '/login', '/register'];
+    final isOnAuthPage = authPages.any((p) => location.startsWith(p));
+    if (isAuth && isOnAuthPage) return '/home';
+
+    // First-run users who never picked a role see the showcase; everyone
+    // else lands straight on Login
+    if (!isAuth && location.startsWith('/landing')) {
+      if (await hasStoredMode()) return '/login';
+    }
     return null;
   },
   routes: [
     GoRoute(
       path: '/landing',
-      builder: (context, state) => const LandingScreen(),
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
     ),
     GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegisterScreen(),
+      path: '/register/passenger',
+      builder: (context, state) => const PassengerRegisterScreen(),
+    ),
+    GoRoute(
+      path: '/register/driver',
+      builder: (context, state) => const DriverRegisterScreen(),
     ),
     GoRoute(
       path: '/book',
@@ -65,23 +81,29 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/pick-driver',
       name: 'pick-driver',
-      builder: (context, state) => const PickDriverScreen(),
+      builder: (context, state) => PickDriverScreen(
+        rideId: state.uri.queryParameters['rideId'],
+        pickup: state.uri.queryParameters['pickup'],
+        dropoff: state.uri.queryParameters['dropoff'],
+      ),
     ),
     GoRoute(
       path: '/ride/:id/tracking',
       builder: (context, state) => RideTrackingScreen(
-        rideId: state.pathParameters['id'] ?? 'ride-uuid-001',
+        rideId: state.pathParameters['id'],
       ),
     ),
     GoRoute(
       path: '/ride/:id/complete',
       builder: (context, state) => RideCompleteScreen(
-        rideId: state.pathParameters['id'] ?? 'ride-uuid-001',
+        rideId: state.pathParameters['id'] ?? '',
       ),
     ),
     GoRoute(
       path: '/ride/:id/rating',
-      builder: (context, state) => const RatingScreen(),
+      builder: (context, state) => RatingScreen(
+        rideId: state.pathParameters['id'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/driver/apply',
@@ -109,7 +131,7 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          builder: (context, state) => const CustomerHomeScreen(),
+          builder: (context, state) => const HomeSwitcher(),
         ),
         GoRoute(
           path: '/history',
