@@ -8,11 +8,16 @@ class ApiEndpoints {
   static const String register = '/auth/register';
   static const String me = '/auth/me';
   static const String refresh = '/auth/refresh';
+  static const String logout = '/auth/logout';
 
   static const String rides = '/rides';
+  static const String availableRides = '/rides/available';
   static const String applyDriver = '/drivers/apply';
   static const String driverMe = '/drivers/me';
+  static const String driversOnline = '/drivers/online';
   static const String driverOnlineStatus = '/drivers/online-status';
   static const String trackingLocation = '/tracking/location';
   static const String municipalities = '/municipalities';
+  static const String notifications = '/notifications';
+  static const String uploads = '/uploads';
 }

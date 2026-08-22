@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../data/rides_repository.dart';
 
 class PickDriverScreen extends ConsumerStatefulWidget {
-  const PickDriverScreen({super.key});
+  final String? rideId;
+  final String? pickup;
+  final String? dropoff;
+
+  const PickDriverScreen({super.key, this.rideId, this.pickup, this.dropoff});
 
   @override
   ConsumerState<PickDriverScreen> createState() => _PickDriverScreenState();
@@ -206,23 +210,26 @@ class _PickDriverScreenState extends ConsumerState<PickDriverScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                context.push(
-                  '/ride/$name/tracking',
-                );
-              },
+              onPressed: widget.rideId == null
+                  ? null
+                  : () {
+                      // The ride stays REQUESTED until a driver accepts it;
+                      // tracking polls for the assignment
+                      context.push('/ride/${widget.rideId}/tracking');
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey.shade300,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'Choose this Driver',
-                style: TextStyle(
+              child: Text(
+                widget.rideId == null ? 'No Active Ride' : 'Choose this Driver',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

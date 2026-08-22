@@ -17,6 +17,7 @@ export interface RideEntity {
   distanceKm: number;
   cancellationReason?: string | null;
   cancelledBy?: 'customer' | 'driver' | null;
+  cancellationFee?: number | null;
   startedAt?: Date | null;
   completedAt?: Date | null;
   createdAt: Date;

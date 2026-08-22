@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
+import '../../../../shared/widgets/app_mode_switch.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -15,11 +17,102 @@ class CustomerHomeScreen extends ConsumerStatefulWidget {
 class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   final _pickupController = TextEditingController();
   final _dropoffController = TextEditingController();
+  final _ridesRepository = RidesRepository();
   int _passengerCount = 1;
+  bool _isRequesting = false;
+  List<dynamic> _municipalities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMunicipalities();
+  }
+
+  Future<void> _loadMunicipalities() async {
+    try {
+      final municipalities = await _ridesRepository.getMunicipalities();
+      if (mounted) setState(() => _municipalities = municipalities);
+    } catch (_) {
+      // Municipality list is optional for the booking flow
+    }
+  }
+
+  // Without GPS the pickup starts at the municipality center and the dropoff
+  // is offset deterministically from the destination text
+  ({double lat, double lng}) _offsetFor(String text, int index) {
+    final seed = text.hashCode.abs() % 1000;
+    final delta = (seed % 20 - 10) / 1000.0 * (index + 1);
+    return (lat: delta, lng: delta);
+  }
+
+  Future<void> _findTrike() async {
+    if (_isRequesting) return;
+    setState(() => _isRequesting = true);
+    try {
+      if (_municipalities.isEmpty) {
+        await _loadMunicipalities();
+      }
+      if (_municipalities.isEmpty) {
+        throw Exception('No service areas available yet');
+      }
+      final municipality = _municipalities.first;
+      final centerLat = (municipality['centerLat'] as num).toDouble();
+      final centerLng = (municipality['centerLng'] as num).toDouble();
+
+      final pickup =
+          _pickupController.text.isNotEmpty ? _pickupController.text : 'Current Location';
+      final dropoff = _dropoffController.text.isNotEmpty
+          ? _dropoffController.text
+          : 'Drop-off Destination';
+      final pickupOffset = _offsetFor(pickup, 0);
+      final dropoffOffset = _offsetFor(dropoff, 1);
+
+      final ride = await _ridesRepository.requestRide(
+        municipalityId: municipality['id'] as String,
+        pickupLat: centerLat + pickupOffset.lat,
+        pickupLng: centerLng + pickupOffset.lng,
+        pickupAddress: pickup,
+        dropoffLat: centerLat + dropoffOffset.lat,
+        dropoffLng: centerLng + dropoffOffset.lng,
+        dropoffAddress: dropoff,
+      );
+
+      if (mounted) {
+        context.pushNamed('pick-driver', queryParameters: {
+          'rideId': ride['id'] as String,
+          'pickup': pickup,
+          'dropoff': dropoff,
+          'passengers': '$_passengerCount',
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isRequesting = false);
+    }
+  }
+
+  // One-tap passenger/driver switching — only offered to approved drivers
+  void _switchMode(AppUserMode mode) {
+    if (mode == ref.read(authProvider).activeMode) return;
+    ref.read(authProvider.notifier).toggleMode(mode);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mode == AppUserMode.driver
+            ? 'You\u2019re now driving \u2014 go online to receive requests'
+            : 'Switched to passenger mode'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final canDrive = kDebugMode || authState.role == 'driver';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -104,7 +197,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.menu,
@@ -113,17 +205,28 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-                  const Text(
-                    'TRIGO',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                      letterSpacing: 2.0,
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'TRIGO',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: 2.0,
+                        ),
+                      ),
                     ),
                   ),
                   Row(
                     children: [
+                      if (canDrive) ...[
+                        AppModeSwitch(
+                          currentMode: authState.activeMode,
+                          onModeChanged: _switchMode,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Stack(
                         children: [
                           IconButton(
@@ -308,8 +411,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                               children: [
                                 InkWell(
                                   onTap: () => setState(() {
-                                    if (_passengerCount > 1)
+                                    if (_passengerCount > 1) {
                                       _passengerCount--;
+                                    }
                                   }),
                                   child: Container(
                                     width: 32,
@@ -363,22 +467,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          final pickup =
-                              _pickupController.text.isNotEmpty
-                                  ? _pickupController.text
-                                  : 'Current Location';
-                          final dropoff =
-                              _dropoffController.text.isNotEmpty
-                                  ? _dropoffController.text
-                                  : 'Drop-off Destination';
-                          context.pushNamed('pick-driver',
-                              queryParameters: {
-                                'pickup': pickup,
-                                'dropoff': dropoff,
-                                'passengers': '$_passengerCount',
-                              });
-                        },
+                        onPressed: _isRequesting ? null : _findTrike,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
@@ -391,10 +480,17 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           shadowColor: const Color(0xFF2563EB)
                               .withValues(alpha: 0.3),
                         ),
-                        child: const Text('Find a Trike',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold)),
+                        child: _isRequesting
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2.5),
+                              )
+                            : const Text('Find a Trike',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 40),

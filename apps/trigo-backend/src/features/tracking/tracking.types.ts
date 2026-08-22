@@ -15,3 +15,10 @@ export interface ActiveDriverLocation {
   activeRideId?: string | null;
   updatedAt: Date;
 }
+
+export interface RideTrackingPoint {
+  lat: number;
+  lng: number;
+  accuracy?: number | null;
+  timestamp: Date;
+}

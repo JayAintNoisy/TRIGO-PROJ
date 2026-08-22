@@ -10,8 +10,10 @@ const controller = new RidesController();
 router.use(authenticate);
 
 router.post('/', validate(createRideSchema), controller.requestRide);
+router.get('/available', controller.listAvailableRides);
 router.get('/', controller.listRides);
 router.get('/:id', controller.getRideById);
+router.get('/:id/tracking', controller.getRideTracking);
 router.post('/:id/accept', controller.acceptRide);
 router.post('/:id/arrive', controller.arrive);
 router.post('/:id/start', controller.startRide);

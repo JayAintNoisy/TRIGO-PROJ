@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 
 class IncomingRequestModal extends StatefulWidget {
-  const IncomingRequestModal({super.key});
+  final dynamic ride;
+  final Future<void> Function() onAccept;
 
-  static Future<void> show(BuildContext context) {
+  const IncomingRequestModal({
+    super.key,
+    required this.ride,
+    required this.onAccept,
+  });
+
+  static Future<void> show(
+      BuildContext context, dynamic ride, Future<void> Function() onAccept) {
     return showModalBottomSheet(
       context: context,
+      isDismissible: false,
+      enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const IncomingRequestModal(),
+      builder: (context) =>
+          IncomingRequestModal(ride: ride, onAccept: onAccept),
     );
   }
 
@@ -20,6 +31,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _scaleAnimation;
+  bool _isAccepting = false;
 
   @override
   void initState() {
@@ -28,7 +40,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
-    
+
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -40,8 +52,23 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
     super.dispose();
   }
 
+  Future<void> _accept() async {
+    setState(() => _isAccepting = true);
+    await widget.onAccept();
+    if (mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ride = widget.ride ?? {};
+    final passengerName = ride['customerName'] ?? 'Passenger';
+    final fare =
+        (ride['fareEstimate'] ?? 0).toDouble().toStringAsFixed(0);
+    final distance =
+        (ride['distanceKm'] ?? 0).toDouble().toStringAsFixed(1);
+    final pickup = ride['pickupAddress'] ?? 'Pickup';
+    final dropoff = ride['dropoffAddress'] ?? 'Drop-off';
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -83,7 +110,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
             ),
           ),
           const SizedBox(height: 16),
-          
+
           const Text(
             'New Ride Request!',
             style: TextStyle(
@@ -93,7 +120,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
             ),
           ),
           const SizedBox(height: 8),
-          
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -105,21 +132,11 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
               children: [
                 const Icon(Icons.person, size: 16, color: Color(0xFF64748B)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Maria Santos',
-                  style: TextStyle(
+                Text(
+                  passengerName,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
-                const SizedBox(width: 4),
-                Text(
-                  '4.9',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade700,
                   ),
                 ),
               ],
@@ -154,9 +171,9 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Pickup', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-                          const Text(
-                            'Gaisano Grand Mall',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          Text(
+                            pickup,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
                         ],
                       ),
@@ -191,9 +208,9 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Drop-off', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-                          const Text(
-                            'Marigondon Public Market',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          Text(
+                            dropoff,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
                         ],
                       ),
@@ -219,9 +236,9 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
                     children: [
                       Text('Est. Fare', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                       const SizedBox(height: 4),
-                      const Text(
-                        '₱65',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF2563EB)), // blue-600
+                      Text(
+                        '\u20B1$fare',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF2563EB)), // blue-600
                       ),
                     ],
                   ),
@@ -239,9 +256,9 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
                     children: [
                       Text('Distance', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                       const SizedBox(height: 4),
-                      const Text(
-                        '3.2 km',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                      Text(
+                        '$distance km',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
                       ),
                     ],
                   ),
@@ -256,7 +273,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isAccepting ? null : () => Navigator.pop(context),
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.grey.shade100,
                     foregroundColor: Colors.grey.shade600,
@@ -272,7 +289,7 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isAccepting ? null : _accept,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981), // emerald-500
                     foregroundColor: Colors.white,
@@ -282,7 +299,14 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text('Accept (14s)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: _isAccepting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2.5),
+                        )
+                      : const Text('ACCEPT RIDE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

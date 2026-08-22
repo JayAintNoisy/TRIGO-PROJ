@@ -3,31 +3,50 @@ import { RideEntity } from './rides.types';
 import { RIDE_STATUS } from '../../shared/constants/ride-status';
 import { v4 as uuidv4 } from 'uuid';
 
+const RIDE_SELECT = `
+  SELECT r.*,
+         cu.name  AS customer_name,
+         cu.phone AS customer_phone,
+         du.name  AS driver_name,
+         du.phone AS driver_phone,
+         m.name   AS municipality_name,
+         dp.tricycle_plate_number AS tricycle_plate_number
+  FROM rides r
+  LEFT JOIN users cu ON cu.id = r.customer_id
+  LEFT JOIN users du ON du.id = r.driver_id
+  LEFT JOIN municipalities m ON m.id = r.municipality_id
+  LEFT JOIN driver_profiles dp ON dp.user_id = r.driver_id
+`;
+
 export class RidesRepository {
   async findById(id: string): Promise<RideEntity | null> {
-    const res = await pool.query('SELECT * FROM rides WHERE id = $1', [id]);
+    const res = await pool.query(`${RIDE_SELECT} WHERE r.id = $1`, [id]);
     if (res.rows.length === 0) return null;
     return this.mapRowToEntity(res.rows[0]);
   }
 
-  async findAll(filter?: { customerId?: string; driverId?: string; status?: RIDE_STATUS }): Promise<RideEntity[]> {
-    let queryText = 'SELECT * FROM rides WHERE 1=1';
+  async findAll(filter?: { customerId?: string; driverId?: string; municipalityId?: string; status?: RIDE_STATUS }): Promise<RideEntity[]> {
+    let queryText = `${RIDE_SELECT} WHERE 1=1`;
     const params: any[] = [];
     let idx = 1;
 
     if (filter?.customerId) {
-      queryText += ` AND customer_id = $${idx++}`;
+      queryText += ` AND r.customer_id = $${idx++}`;
       params.push(filter.customerId);
     }
     if (filter?.driverId) {
-      queryText += ` AND driver_id = $${idx++}`;
+      queryText += ` AND r.driver_id = $${idx++}`;
       params.push(filter.driverId);
     }
+    if (filter?.municipalityId) {
+      queryText += ` AND r.municipality_id = $${idx++}`;
+      params.push(filter.municipalityId);
+    }
     if (filter?.status) {
-      queryText += ` AND status = $${idx++}`;
+      queryText += ` AND r.status = $${idx++}`;
       params.push(filter.status);
     }
-    queryText += ' ORDER BY created_at DESC';
+    queryText += ' ORDER BY r.created_at DESC';
 
     const res = await pool.query(queryText, params);
     return res.rows.map(this.mapRowToEntity);
@@ -72,14 +91,19 @@ export class RidesRepository {
   async updateStatus(
     id: string,
     status: RIDE_STATUS,
-    extra?: { driverId?: string; cancellationReason?: string; cancelledBy?: 'customer' | 'driver'; fareFinal?: number; startedAt?: Date; completedAt?: Date }
+    extra?: { driverId?: string; cancellationReason?: string; cancelledBy?: 'customer' | 'driver'; fareFinal?: number; startedAt?: Date; completedAt?: Date; cancellationFee?: number }
   ): Promise<RideEntity | null> {
     await pool.query(
-      `UPDATE rides SET status = $1, driver_id = COALESCE($2, driver_id), cancellation_reason = COALESCE($3, cancellation_reason), cancelled_by = COALESCE($4, cancelled_by), fare_final = COALESCE($5, fare_final), started_at = COALESCE($6, started_at), completed_at = COALESCE($7, completed_at), updated_at = NOW() WHERE id = $8`,
-      [status, extra?.driverId || null, extra?.cancellationReason || null, extra?.cancelledBy || null, extra?.fareFinal || null, extra?.startedAt || null, extra?.completedAt || null, id]
+      `UPDATE rides SET status = $1, driver_id = COALESCE($2, driver_id), cancellation_reason = COALESCE($3, cancellation_reason), cancelled_by = COALESCE($4, cancelled_by), fare_final = COALESCE($5, fare_final), started_at = COALESCE($6, started_at), completed_at = COALESCE($7, completed_at), cancellation_fee = COALESCE($8, cancellation_fee), updated_at = NOW() WHERE id = $9`,
+      [status, extra?.driverId || null, extra?.cancellationReason || null, extra?.cancelledBy || null, extra?.fareFinal || null, extra?.startedAt || null, extra?.completedAt || null, extra?.cancellationFee ?? null, id]
     );
 
     return this.findById(id);
+  }
+
+  async findRatingByRideId(rideId: string): Promise<{ id: string } | null> {
+    const res = await pool.query('SELECT id FROM ride_ratings WHERE ride_id = $1 LIMIT 1', [rideId]);
+    return res.rows[0] || null;
   }
 
   async saveRating(rideId: string, customerId: string, driverId: string, rating: number, comment?: string): Promise<void> {
@@ -107,10 +131,17 @@ export class RidesRepository {
       distanceKm: parseFloat(row.distance_km || 0),
       cancellationReason: row.cancellation_reason,
       cancelledBy: row.cancelled_by,
+      cancellationFee: row.cancellation_fee !== null && row.cancellation_fee !== undefined ? parseFloat(row.cancellation_fee) : 0,
       startedAt: row.started_at ? new Date(row.started_at) : null,
       completedAt: row.completed_at ? new Date(row.completed_at) : null,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
+      customerName: row.customer_name || undefined,
+      customerPhone: row.customer_phone || undefined,
+      driverName: row.driver_name || undefined,
+      driverPhone: row.driver_phone || undefined,
+      tricyclePlateNumber: row.tricycle_plate_number || undefined,
+      municipalityName: row.municipality_name || undefined,
     };
   }
 }

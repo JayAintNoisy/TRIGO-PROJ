@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 import '../../../../shared/widgets/app_mode_switch.dart';
+import '../../../../shared/widgets/app_back_button.dart';
 
 class RideTrackingScreen extends ConsumerStatefulWidget {
   final String? rideId;
@@ -19,22 +21,35 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   final _repository = RidesRepository();
   dynamic _ride;
   bool _isLoading = true;
+  bool _isActioning = false;
+  Timer? _pollTimer;
+
+  String? get _effectiveRideId =>
+      (widget.rideId == null || widget.rideId!.isEmpty) ? null : widget.rideId;
 
   @override
   void initState() {
     super.initState();
-    if (widget.rideId != null &&
-        widget.rideId != 'ride-uuid-001') {
+    if (_effectiveRideId != null) {
       _loadRide();
+      // Poll while the ride progresses so driver assignment and status
+      // transitions appear without a push channel
+      _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) => _loadRide());
     } else {
       setState(() => _isLoading = false);
     }
   }
 
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _loadRide() async {
     try {
-      final ride = await _repository.getRideById(widget.rideId!);
-      if (mounted) {
+      final ride = await _repository.getRideById(_effectiveRideId!);
+      if (mounted && ride != null) {
         setState(() {
           _ride = ride;
           _isLoading = false;
@@ -45,22 +60,103 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     }
   }
 
+  Future<void> _cancelRide() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cancel this ride?'),
+        content: const Text(
+            'Cancelling after a driver accepts may incur a cancellation fee.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Keep Ride')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Cancel Ride',
+                  style: TextStyle(color: Color(0xFFDC2626)))),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isActioning = true);
+    try {
+      await _repository.cancelRide(_effectiveRideId!, reason: 'Cancelled by customer');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ride cancelled')),
+        );
+        context.go('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isActioning = false);
+    }
+  }
+
+  Future<void> _runDriverAction(Future<dynamic> Function() action,
+      {String? successMessage}) async {
+    setState(() => _isActioning = true);
+    try {
+      final updated = await action();
+      if (mounted) {
+        if (updated?['status'] == 'completed') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ride completed!')),
+          );
+          context.go('/home');
+        } else {
+          setState(() => _ride = updated);
+          if (successMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(successMessage)),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isActioning = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isDriver = authState.activeMode == AppUserMode.driver;
 
+    final rideStatus = _ride?['status'] as String?;
+
+    const statusLabels = {
+      'requested': 'Looking for a nearby trike...',
+      'accepted': 'Your driver accepted! On the way',
+      'driver_arriving': 'Your driver has arrived',
+      'in_progress': 'Enjoy your ride!',
+      'completed': 'Ride completed',
+      'cancelled': 'This ride was cancelled',
+    };
     final statusText =
-        _ride?['status'] == 'accepted'
-            ? 'Driver is on the way'
-            : 'Your driver is arriving';
+        statusLabels[rideStatus] ?? 'Looking for a nearby trike...';
 
     final driverName =
-        _ride?['driverName'] ?? (isDriver ? 'Passenger' : 'Driver');
-    final plate =
-        _ride?['tricyclePlateNumber'] ?? 'N/A';
-    final fare =
-        _ride?['fareEstimate']?.toString() ?? '45';
+        _ride?['driverName'] ?? (isDriver ? 'Passenger' : 'Waiting for driver...');
+    final plate = _ride?['tricyclePlateNumber'] ?? 'N/A';
+    final fare = _ride?['fareEstimate']?.toString() ?? '—';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -143,22 +239,16 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 16,
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                    ),
-                  ],
+            child: const AppBackButton(
+              iconColor: Colors.black,
+              backgroundColor: Colors.white,
+              fallbackLocation: '/home',
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
                 ),
-                child: const Icon(Icons.arrow_back, color: Colors.black),
-              ),
-              onPressed: () => context.pop(),
+              ],
             ),
           ),
           Positioned(
@@ -322,18 +412,39 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (widget.rideId != null) {
-                                context.push(
-                                  '/ride/${widget.rideId}/complete',
-                                );
-                              } else {
-                                context.push('/ride/ride-uuid-001/complete');
-                              }
-                            },
+                            onPressed: _isActioning || rideStatus == null
+                                ? null
+                                : () {
+                                    if (isDriver) {
+                                      switch (rideStatus) {
+                                        case 'accepted':
+                                          _runDriverAction(
+                                              () => _repository.arrive(_effectiveRideId!),
+                                              successMessage: 'Marked as arrived');
+                                          break;
+                                        case 'driver_arriving':
+                                          _runDriverAction(
+                                              () => _repository.startRide(_effectiveRideId!),
+                                              successMessage: 'Ride started');
+                                          break;
+                                        case 'in_progress':
+                                          _runDriverAction(
+                                              () => _repository.completeRide(_effectiveRideId!));
+                                          break;
+                                      }
+                                    } else if (rideStatus == 'completed') {
+                                      context.push('/ride/$_effectiveRideId/rating');
+                                    } else if (!['cancelled'].contains(rideStatus)) {
+                                      _cancelRide();
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: isDriver ||
+                                      rideStatus == 'completed'
+                                  ? const Color(0xFF2563EB)
+                                  : Colors.red.shade600,
                               foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey.shade300,
                               padding: const EdgeInsets.symmetric(
                                   vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -344,17 +455,42 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                               shadowColor:
                                   const Color(0xFFBFDBFE),
                             ),
-                            child: Text(
-                              isDriver
-                                  ? 'Complete Ride'
-                                  : 'Complete Ride',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                            child: _isActioning
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2.5),
+                                  )
+                                : Text(
+                                    isDriver
+                                        ? switch (rideStatus) {
+                                            'accepted' => 'Arrived at Pickup',
+                                            'driver_arriving' => 'Start Ride',
+                                            'in_progress' => 'Complete Ride',
+                                            _ => 'Waiting...',
+                                          }
+                                        : rideStatus == 'completed'
+                                            ? 'Rate your Ride'
+                                            : 'Cancel Ride',
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        if (!isDriver && rideStatus == 'cancelled') ...[
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: () => context.go('/home'),
+                            child: Text(
+                              'Back to Home',
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
                       ],
                     ),
             ),

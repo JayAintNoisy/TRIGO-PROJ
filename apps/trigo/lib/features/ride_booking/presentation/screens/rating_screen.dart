@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../data/rides_repository.dart';
 
 class RatingScreen extends ConsumerStatefulWidget {
-  const RatingScreen({super.key});
+  final String rideId;
+  const RatingScreen({super.key, required this.rideId});
 
   @override
   ConsumerState<RatingScreen> createState() => _RatingScreenState();
@@ -25,17 +26,24 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
   ];
 
   Future<void> _submitRating() async {
-    if (_rating == 0) return;
+    if (_rating == 0 || widget.rideId.isEmpty) return;
     setState(() => _isSubmitting = true);
     try {
       await _repository.rateRide(
-        'ride-uuid-001',
+        widget.rideId,
         _rating,
         comment: _selectedFeedback.join(', '),
       );
       if (mounted) context.go('/home');
-    } catch (_) {
-      if (mounted) context.go('/home');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+        context.go('/home');
+      }
     }
   }
 

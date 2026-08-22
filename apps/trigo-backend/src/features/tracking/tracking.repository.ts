@@ -1,5 +1,5 @@
 import { pool } from '../../shared/database/connection';
-import { ActiveDriverLocation, DriverLocationUpdate } from './tracking.types';
+import { ActiveDriverLocation, DriverLocationUpdate, RideTrackingPoint } from './tracking.types';
 import { DriversRepository } from '../drivers/drivers.repository';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +16,19 @@ export class TrackingRepository {
       'INSERT INTO ride_tracking (id, ride_id, driver_id, lat, lng, accuracy) VALUES ($1, $2, $3, $4, $5, $6)',
       [uuidv4(), update.rideId || null, driverUserId, update.lat, update.lng, update.accuracy || null]
     );
+  }
+
+  async getRideTrackingHistory(rideId: string): Promise<RideTrackingPoint[]> {
+    const res = await pool.query(
+      'SELECT lat, lng, accuracy, timestamp FROM ride_tracking WHERE ride_id = $1 ORDER BY timestamp ASC',
+      [rideId]
+    );
+    return res.rows.map((row) => ({
+      lat: parseFloat(row.lat),
+      lng: parseFloat(row.lng),
+      accuracy: row.accuracy ? parseFloat(row.accuracy) : null,
+      timestamp: new Date(row.timestamp),
+    }));
   }
 
   async getActiveDrivers(): Promise<ActiveDriverLocation[]> {

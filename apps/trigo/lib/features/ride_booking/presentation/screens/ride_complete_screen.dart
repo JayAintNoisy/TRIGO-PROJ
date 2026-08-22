@@ -38,16 +38,30 @@ class _RideCompleteScreenState extends ConsumerState<RideCompleteScreen> {
   Future<void> _submitRating() async {
     try {
       await _repository.rateRide(widget.rideId, rating);
-    } catch (_) {}
+    } catch (_) {
+      // Rating is optional — continue to home even if it fails
+    }
+  }
+
+  void _submitRatingAndNavigate() {
+    // Capture dependencies before any async gap
+    final navigator = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    _submitRating().then((_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Thanks for your feedback!')),
+      );
+    });
+    navigator.go('/home');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fare =
-        _ride?['fareEstimate']?.toString() ?? '45';
+    final fare = (_ride?['fareFinal'] ?? _ride?['fareEstimate'] ?? 0)
+        .toString();
     final driverName =
-        _ride?['driverName'] ?? 'Driver';
+        _ride?['driverName'] ?? 'your driver';
 
     return Scaffold(
       body: SafeArea(
@@ -116,10 +130,7 @@ class _RideCompleteScreenState extends ConsumerState<RideCompleteScreen> {
                     const SizedBox(height: 32),
                     AppButton(
                       label: 'Submit & Back to Home',
-                      onPressed: () {
-                        _submitRating();
-                        context.go('/home');
-                      },
+                      onPressed: _submitRatingAndNavigate,
                     ),
                   ],
                 ),

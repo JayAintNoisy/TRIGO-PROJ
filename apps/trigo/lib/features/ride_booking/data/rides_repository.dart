@@ -31,8 +31,26 @@ class RidesRepository {
     }
   }
 
-  Future<List<dynamic>> getRides() async {
-    final response = await _dio.get(ApiEndpoints.rides);
+  Future<List<dynamic>> getRides({String? status}) async {
+    final response = await _dio.get(
+      ApiEndpoints.rides,
+      queryParameters: {if (status != null) 'status': status},
+    );
+    return (response.data['data'] as List?) ?? [];
+  }
+
+  // Open ride requests in the driver's municipality
+  Future<List<dynamic>> getAvailableRides() async {
+    try {
+      final response = await _dio.get(ApiEndpoints.availableRides);
+      return (response.data['data'] as List?) ?? [];
+    } on DioException catch (e) {
+      throw Exception(extractApiError(e.response?.data));
+    }
+  }
+
+  Future<List<dynamic>> getMunicipalities() async {
+    final response = await _dio.get(ApiEndpoints.municipalities);
     return (response.data['data'] as List?) ?? [];
   }
 
@@ -120,7 +138,20 @@ class DriversRepository {
   }
 
   Future<List<dynamic>> getDrivers() async {
-    final response = await _dio.get('/drivers');
+    final response = await _dio.get(ApiEndpoints.driversOnline);
     return (response.data['data'] as List?) ?? [];
+  }
+}
+
+class NotificationsRepository {
+  final Dio _dio = dioClient;
+
+  Future<List<dynamic>> getNotifications() async {
+    final response = await _dio.get(ApiEndpoints.notifications);
+    return (response.data['data'] as List?) ?? [];
+  }
+
+  Future<void> markAsRead(String id) async {
+    await _dio.patch('${ApiEndpoints.notifications}/$id/read');
   }
 }

@@ -24,6 +24,15 @@ export class RidesController {
     }
   }
 
+  async listAvailableRides(req: Request, res: Response, next: NextFunction) {
+    try {
+      const list = await service.listAvailableRides(req.user!.id);
+      return res.status(200).json({ success: true, data: list });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getRideById(req: Request, res: Response, next: NextFunction) {
     try {
       const ride = await service.getRideById(req.params.id, req.user!.id, req.user!.role);
@@ -82,6 +91,15 @@ export class RidesController {
     try {
       const result = await service.rateRide(req.params.id, req.user!.id, req.body);
       return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getRideTracking(req: Request, res: Response, next: NextFunction) {
+    try {
+      const points = await service.getRideTracking(req.params.id, req.user!.id, req.user!.role);
+      return res.status(200).json({ success: true, data: points });
     } catch (error) {
       next(error);
     }

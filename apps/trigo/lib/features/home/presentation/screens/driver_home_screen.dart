@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
+import '../../../../shared/widgets/app_mode_switch.dart';
+import '../../../ride_booking/presentation/widgets/incoming_request_modal.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
@@ -13,30 +17,109 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
-  final _repository = DriversRepository();
+  final _ridesRepository = RidesRepository();
+  final _driversRepository = DriversRepository();
   bool _isOnline = true;
   bool _isToggling = false;
+  Timer? _requestTimer;
+  final Set<String> _shownRequestIds = {};
+  int _pendingRequests = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOnlineStatus();
+    // Poll for open ride requests in the driver's municipality
+    _requestTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pollRequests());
+  }
+
+  @override
+  void dispose() {
+    _requestTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadOnlineStatus() async {
+    try {
+      final profile = await _driversRepository.getMe();
+      if (mounted && profile != null) {
+        setState(() => _isOnline = profile['isOnline'] ?? false);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pollRequests() async {
+    if (!_isOnline || _isToggling || !mounted) return;
+    try {
+      final rides = await _ridesRepository.getAvailableRides();
+      if (!mounted) return;
+      setState(() => _pendingRequests = rides.length);
+      final fresh = rides.where((r) => !_shownRequestIds.contains(r['id'])).toList();
+      if (fresh.isNotEmpty) {
+        final ride = fresh.first;
+        _shownRequestIds.add(ride['id']);
+        await IncomingRequestModal.show(context, ride, () async {
+          try {
+            await _ridesRepository.acceptRide(ride['id']);
+            if (mounted) context.push('/ride/${ride['id']}/tracking');
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                        e.toString().replaceFirst('Exception: ', ''))),
+              );
+            }
+          }
+        });
+      }
+    } catch (_) {
+      // Polling failures are non-fatal; retried on next tick
+    }
+  }
 
   Future<void> _toggleOnline() async {
     setState(() => _isToggling = true);
     try {
       final result =
-          await _repository.toggleOnlineStatus(!_isOnline);
+          await _driversRepository.toggleOnlineStatus(!_isOnline);
       if (mounted) {
         setState(() {
           _isOnline = result['isOnline'] ?? !_isOnline;
           _isToggling = false;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _isToggling = false);
+      if (_isOnline) _pollRequests();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+        setState(() => _isToggling = false);
+      }
     }
+  }
+
+  // One-tap passenger/driver switching — only offered to approved drivers
+  void _switchMode(AppUserMode mode) {
+    if (mode == ref.read(authProvider).activeMode) return;
+    ref.read(authProvider.notifier).toggleMode(mode);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mode == AppUserMode.driver
+            ? 'You\u2019re now driving \u2014 go online to receive requests'
+            : 'Switched to passenger mode'),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final name = authState.name ?? 'Driver';
+    final canDrive = kDebugMode || authState.role == 'driver';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -161,6 +244,13 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               ),
               child: Column(
                 children: [
+                  if (canDrive) ...[
+                    AppModeSwitch(
+                      currentMode: authState.activeMode,
+                      onModeChanged: _switchMode,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   Row(
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
@@ -309,7 +399,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                           children: [
                             Text(
                               _isOnline
-                                  ? 'Waiting for passengers...'
+                                  ? (_pendingRequests > 0
+                                      ? '$_pendingRequests ride request(s) nearby!'
+                                      : 'Waiting for passengers...')
                                   : 'You are currently offline',
                               style: const TextStyle(
                                 fontSize: 16,

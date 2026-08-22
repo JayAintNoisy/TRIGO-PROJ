@@ -1,7 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../ride_booking/data/rides_repository.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  final _repository = RidesRepository();
+  List<dynamic> _rides = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRides();
+  }
+
+  Future<void> _loadRides() async {
+    try {
+      final rides = await _repository.getRides();
+      if (mounted) {
+        setState(() {
+          _rides = rides;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceFirst('Exception: ', '');
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _formatDate(dynamic raw) {
+    if (raw == null) return '';
+    final dt = DateTime.tryParse(raw.toString());
+    if (dt == null) return '';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    final suffix = dt.hour >= 12 ? 'PM' : 'AM';
+    return '${months[dt.month - 1]} ${dt.day}, $hour:${dt.minute.toString().padLeft(2, '0')} $suffix';
+  }
+
+  ({String label, Color color, Color bg}) _statusStyle(String status) {
+    switch (status) {
+      case 'completed':
+        return (
+          label: 'Completed',
+          color: const Color(0xFF047857),
+          bg: const Color(0xFFD1FAE5)
+        );
+      case 'cancelled':
+        return (
+          label: 'Cancelled',
+          color: Colors.grey.shade600,
+          bg: Colors.grey.shade200
+        );
+      default:
+        return (
+          label: 'Active',
+          color: const Color(0xFF1D4ED8),
+          bg: const Color(0xFFDBEAFE)
+        );
+    }
+  }
 
   Widget _buildRideCard({
     required BuildContext context,
@@ -217,8 +290,11 @@ class HistoryScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.calendar_today, color: Colors.grey.shade400),
-            onPressed: () {},
+            icon: Icon(Icons.refresh, color: Colors.grey.shade400),
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _loadRides();
+            },
           ),
         ],
         bottom: PreferredSize(
@@ -229,59 +305,68 @@ class HistoryScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildRideCard(
-            context: context,
-            date: 'Today, 2:45 PM',
-            status: 'Completed',
-            statusColor: const Color(0xFF047857),
-            statusBgColor: const Color(0xFFD1FAE5),
-            pickup: 'Barangay Center',
-            dropoff: 'SM Mall',
-            driverName: 'Mang Jose',
-            fare: '₱50',
-            isCancelled: false,
-          ),
-          _buildRideCard(
-            context: context,
-            date: 'Yesterday, 4:30 PM',
-            status: 'Completed',
-            statusColor: const Color(0xFF047857),
-            statusBgColor: const Color(0xFFD1FAE5),
-            pickup: 'Home',
-            dropoff: 'Market',
-            driverName: 'Kuya Mario',
-            fare: '₱35',
-            isCancelled: false,
-          ),
-          _buildRideCard(
-            context: context,
-            date: 'Apr 28, 10:15 AM',
-            status: 'Completed',
-            statusColor: const Color(0xFF047857),
-            statusBgColor: const Color(0xFFD1FAE5),
-            pickup: 'Church',
-            dropoff: 'Hospital',
-            driverName: 'Tatay Ben',
-            fare: '₱65',
-            isCancelled: false,
-          ),
-          _buildRideCard(
-            context: context,
-            date: 'Apr 27, 3:20 PM',
-            status: 'Cancelled',
-            statusColor: Colors.grey.shade600,
-            statusBgColor: Colors.grey.shade200,
-            pickup: 'School',
-            dropoff: 'Home',
-            driverName: 'Mang Carlos',
-            fare: '₱40',
-            isCancelled: true,
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error!,
+                          style:
+                              const TextStyle(color: Color(0xFFDC2626))),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() => _isLoading = true);
+                          _loadRides();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : _rides.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history,
+                              size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 12),
+                          Text('No rides yet',
+                              style: TextStyle(color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadRides,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _rides.length,
+                        itemBuilder: (context, index) {
+                          final ride = _rides[index];
+                          final status =
+                              (ride['status'] ?? '').toString();
+                          final style = _statusStyle(status);
+                          final isCancelled = status == 'cancelled';
+                          final fareValue =
+                              ride['fareFinal'] ?? ride['fareEstimate'] ?? 0;
+                          return _buildRideCard(
+                            context: context,
+                            date: _formatDate(ride['createdAt']),
+                            status: style.label,
+                            statusColor: style.color,
+                            statusBgColor: style.bg,
+                            pickup: ride['pickupAddress'] ?? 'Pickup',
+                            dropoff: ride['dropoffAddress'] ?? 'Drop-off',
+                            driverName: ride['driverName'] ?? '—',
+                            fare: '\u20B1${double.parse(fareValue.toString()).toStringAsFixed(0)}',
+                            isCancelled: isCancelled,
+                          );
+                        },
+                      ),
+                    ),
     );
   }
 }
