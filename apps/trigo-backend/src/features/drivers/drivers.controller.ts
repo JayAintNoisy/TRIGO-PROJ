@@ -32,6 +32,15 @@ export class DriversController {
     }
   }
 
+  async getOnlineDrivers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const drivers = await service.getOnlineDrivers();
+      return res.status(200).json({ success: true, data: drivers });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getDriverById(req: Request, res: Response, next: NextFunction) {
     try {
       const driver = await service.getDriverById(req.params.id);
@@ -46,6 +55,24 @@ export class DriversController {
       const status = req.query.status as DRIVER_APPLICATION_STATUS | undefined;
       const apps = await service.getApplications(status);
       return res.status(200).json({ success: true, data: apps });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getApplicationById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const app = await service.getApplicationById(req.params.id);
+      return res.status(200).json({ success: true, data: app });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async startReview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const reviewing = await service.startReview(req.params.id);
+      return res.status(200).json({ success: true, data: reviewing });
     } catch (error) {
       next(error);
     }

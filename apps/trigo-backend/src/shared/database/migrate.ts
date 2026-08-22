@@ -26,6 +26,10 @@ export const migrate = async () => {
       radius_km DECIMAL(5, 2) NOT NULL,
       base_fare DECIMAL(10, 2) NOT NULL DEFAULT 30.00,
       per_km_rate DECIMAL(10, 2) NOT NULL DEFAULT 10.00,
+      exclusive_multiplier DECIMAL(4, 2) DEFAULT 1.50,
+      min_fare DECIMAL(10, 2) DEFAULT 20.00,
+      night_surcharge DECIMAL(10, 2) DEFAULT 0,
+      max_passengers INTEGER DEFAULT 4,
       is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
@@ -38,7 +42,7 @@ export const migrate = async () => {
       license_number VARCHAR(50) NOT NULL,
       tricycle_plate_number VARCHAR(20) NOT NULL,
       tricycle_model VARCHAR(100),
-      application_status VARCHAR(20) DEFAULT 'pending' CHECK (application_status IN ('pending', 'approved', 'rejected', 'suspended')),
+      application_status VARCHAR(20) DEFAULT 'pending' CHECK (application_status IN ('pending', 'reviewing', 'approved', 'rejected', 'suspended')),
       rejection_reason TEXT,
       is_online BOOLEAN DEFAULT false,
       current_lat DECIMAL(10, 8),
@@ -74,6 +78,7 @@ export const migrate = async () => {
       distance_km DECIMAL(8, 2),
       cancellation_reason TEXT,
       cancelled_by VARCHAR(10) CHECK (cancelled_by IN ('customer', 'driver')),
+      cancellation_fee DECIMAL(10, 2) DEFAULT 0,
       started_at TIMESTAMP,
       completed_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW(),
@@ -120,11 +125,45 @@ export const migrate = async () => {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS device_tokens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      fcm_token TEXT NOT NULL,
+      platform VARCHAR(10) CHECK (platform IN ('android', 'ios', 'web')),
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      CONSTRAINT device_tokens_user_platform_unique UNIQUE (user_id, platform)
+    );
+  `;
+
+  // Idempotent alterations for pre-existing databases
+  const alterSql = `
+    ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancellation_fee DECIMAL(10, 2) DEFAULT 0;
+    ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS exclusive_multiplier DECIMAL(4, 2) DEFAULT 1.50;
+    ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS min_fare DECIMAL(10, 2) DEFAULT 20.00;
+    ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS night_surcharge DECIMAL(10, 2) DEFAULT 0;
+    ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS max_passengers INTEGER DEFAULT 4;
+    CREATE UNIQUE INDEX IF NOT EXISTS ride_ratings_ride_unique ON ride_ratings (ride_id);
+    CREATE INDEX IF NOT EXISTS ride_tracking_ride_idx ON ride_tracking (ride_id);
+    DO $$
+    BEGIN
+      -- Widen the application status check to include 'reviewing'
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'driver_profiles_application_status_check'
+          AND pg_get_constraintdef(oid) LIKE '%reviewing%'
+      ) THEN
+        EXECUTE 'ALTER TABLE driver_profiles DROP CONSTRAINT IF EXISTS driver_profiles_application_status_check';
+        EXECUTE 'ALTER TABLE driver_profiles ADD CONSTRAINT driver_profiles_application_status_check CHECK (application_status IN (''pending'', ''reviewing'', ''approved'', ''rejected'', ''suspended''))';
+      END IF;
+    END $$;
   `;
 
   try {
     console.log('🔄 Connecting to PostgreSQL database to apply migrations...');
     await pool.query(schemaSql);
+    await pool.query(alterSql);
     console.log('✅ Database migrations applied successfully!');
     logger.info('Database migrations applied successfully.');
   } catch (error: any) {

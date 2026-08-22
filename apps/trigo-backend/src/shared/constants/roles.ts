@@ -6,6 +6,7 @@ export enum USER_ROLE {
 
 export enum DRIVER_APPLICATION_STATUS {
   PENDING = 'pending',
+  REVIEWING = 'reviewing',
   APPROVED = 'approved',
   REJECTED = 'rejected',
   SUSPENDED = 'suspended',

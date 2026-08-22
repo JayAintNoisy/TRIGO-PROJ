@@ -18,9 +18,29 @@ export class DriversService {
       if (existing.applicationStatus === DRIVER_APPLICATION_STATUS.PENDING) {
         throw new AppError('You already have a pending driver application', 400, ERROR_CODES.CONFLICT);
       }
+      if (existing.applicationStatus === DRIVER_APPLICATION_STATUS.REVIEWING) {
+        throw new AppError('Your application is currently being reviewed', 400, ERROR_CODES.CONFLICT);
+      }
+      // Rejected applications may be corrected and resubmitted
+      return this.repository.replaceApplication(existing.id, input);
     }
 
     return this.repository.createApplication(userId, input);
+  }
+
+  async startReview(applicationId: string) {
+    const app = await this.repository.findById(applicationId);
+    if (!app) {
+      throw new AppError('Driver application not found', 404, ERROR_CODES.NOT_FOUND);
+    }
+    if (app.applicationStatus !== DRIVER_APPLICATION_STATUS.PENDING) {
+      throw new AppError(
+        'Only pending applications can move to review',
+        409,
+        ERROR_CODES.CONFLICT,
+      );
+    }
+    return this.repository.updateStatus(applicationId, DRIVER_APPLICATION_STATUS.REVIEWING);
   }
 
   async getOwnProfile(userId: string) {
@@ -35,6 +55,12 @@ export class DriversService {
     return this.repository.findAll();
   }
 
+  // Online approved drivers — visible to any authenticated user so customers
+  // can see who is nearby
+  async getOnlineDrivers() {
+    return this.repository.findOnlineDrivers();
+  }
+
   async getDriverById(id: string) {
     const driver = await this.repository.findById(id);
     if (!driver) {
@@ -45,6 +71,15 @@ export class DriversService {
 
   async getApplications(status?: DRIVER_APPLICATION_STATUS) {
     return this.repository.findApplications(status);
+  }
+
+  async getApplicationById(applicationId: string) {
+    const application = await this.repository.findById(applicationId);
+    if (!application) {
+      throw new AppError('Driver application not found', 404, ERROR_CODES.NOT_FOUND);
+    }
+    const documents = await this.repository.findDocumentsByProfileId(application.id);
+    return { ...application, documents };
   }
 
   async approveApplication(applicationId: string) {
