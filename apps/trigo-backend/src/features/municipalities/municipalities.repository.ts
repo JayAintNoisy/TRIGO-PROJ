@@ -1,5 +1,5 @@
 import { pool } from '../../shared/database/connection';
-import { MunicipalityEntity, CreateMunicipalityInput, UpdateFareConfigInput } from './municipalities.types';
+import { MunicipalityEntity, CreateMunicipalityInput, UpdateFareConfigInput, UpdateMunicipalityInput } from './municipalities.types';
 import { v4 as uuidv4 } from 'uuid';
 
 export class MunicipalitiesRepository {
@@ -26,6 +26,10 @@ export class MunicipalitiesRepository {
       radiusKm: input.radiusKm,
       baseFare: input.baseFare ?? 30.0,
       perKmRate: input.perKmRate ?? 10.0,
+      exclusiveMultiplier: 1.5,
+      minFare: 20,
+      nightSurcharge: 0,
+      maxPassengers: 4,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -53,11 +57,68 @@ export class MunicipalitiesRepository {
   }
 
   async updateFareConfig(id: string, input: UpdateFareConfigInput): Promise<MunicipalityEntity | null> {
-    await pool.query(
-      'UPDATE municipalities SET base_fare = $1, per_km_rate = $2, updated_at = NOW() WHERE id = $3',
-      [input.baseFare, input.perKmRate, id]
-    );
+    const fieldMap: Record<string, string> = {
+      baseFare: 'base_fare',
+      perKmRate: 'per_km_rate',
+      exclusiveMultiplier: 'exclusive_multiplier',
+      minFare: 'min_fare',
+      nightSurcharge: 'night_surcharge',
+      maxPassengers: 'max_passengers',
+    };
 
+    const updates: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+
+    for (const [key, column] of Object.entries(fieldMap)) {
+      if (input[key as keyof UpdateFareConfigInput] !== undefined) {
+        updates.push(`${column} = $${idx++}`);
+        params.push(input[key as keyof UpdateFareConfigInput]);
+      }
+    }
+    if (updates.length === 0) return this.findById(id);
+
+    updates.push('updated_at = NOW()');
+    await pool.query(`UPDATE municipalities SET ${updates.join(', ')} WHERE id = $${idx}`, [...params, id]);
+
+    return this.findById(id);
+  }
+
+  async update(id: string, input: UpdateMunicipalityInput): Promise<MunicipalityEntity | null> {
+    const updates: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+
+    const fieldMap: Record<string, string> = {
+      name: 'name',
+      province: 'province',
+      centerLat: 'center_lat',
+      centerLng: 'center_lng',
+      radiusKm: 'radius_km',
+      baseFare: 'base_fare',
+      perKmRate: 'per_km_rate',
+      isActive: 'is_active',
+    };
+
+    for (const [key, column] of Object.entries(fieldMap)) {
+      if (input[key as keyof UpdateMunicipalityInput] !== undefined) {
+        updates.push(`${column} = $${idx++}`);
+        params.push(input[key as keyof UpdateMunicipalityInput]);
+      }
+    }
+
+    if (updates.length === 0) return this.findById(id);
+
+    updates.push(`updated_at = NOW()`);
+    await pool.query(`UPDATE municipalities SET ${updates.join(', ')} WHERE id = $${idx}`, [...params, id]);
+
+    return this.findById(id);
+  }
+
+  // Soft delete — rides and driver profiles reference municipalities, so the row
+  // is deactivated instead of removed
+  async softDelete(id: string): Promise<MunicipalityEntity | null> {
+    await pool.query('UPDATE municipalities SET is_active = false, updated_at = NOW() WHERE id = $1', [id]);
     return this.findById(id);
   }
 
@@ -71,6 +132,10 @@ export class MunicipalitiesRepository {
       radiusKm: parseFloat(row.radius_km),
       baseFare: parseFloat(row.base_fare),
       perKmRate: parseFloat(row.per_km_rate),
+      exclusiveMultiplier: row.exclusive_multiplier !== null && row.exclusive_multiplier !== undefined ? parseFloat(row.exclusive_multiplier) : 1.5,
+      minFare: row.min_fare !== null && row.min_fare !== undefined ? parseFloat(row.min_fare) : 20,
+      nightSurcharge: row.night_surcharge !== null && row.night_surcharge !== undefined ? parseFloat(row.night_surcharge) : 0,
+      maxPassengers: row.max_passengers ? parseInt(row.max_passengers, 10) : 4,
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),

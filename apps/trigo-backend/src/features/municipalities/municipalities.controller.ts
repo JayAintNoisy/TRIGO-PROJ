@@ -39,4 +39,22 @@ export class MunicipalitiesController {
       next(error);
     }
   }
+
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const updated = await service.updateMunicipality(req.params.id, req.body);
+      return res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async remove(req: Request, res: Response, next: NextFunction) {
+    try {
+      const deleted = await service.deleteMunicipality(req.params.id);
+      return res.status(200).json({ success: true, data: deleted, message: 'Municipality deactivated' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

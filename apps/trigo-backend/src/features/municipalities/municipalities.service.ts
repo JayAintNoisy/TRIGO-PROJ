@@ -1,5 +1,5 @@
 import { MunicipalitiesRepository } from './municipalities.repository';
-import { CreateMunicipalityInput, UpdateFareConfigInput } from './municipalities.types';
+import { CreateMunicipalityInput, UpdateFareConfigInput, UpdateMunicipalityInput } from './municipalities.types';
 import { calculateDistanceKm } from '../../shared/utils/calculate-distance';
 import { AppError } from '../../shared/errors/app-error';
 import { ERROR_CODES } from '../../shared/errors/error-codes';
@@ -29,6 +29,23 @@ export class MunicipalitiesService {
       throw new AppError('Municipality not found', 404, ERROR_CODES.NOT_FOUND);
     }
     return updated;
+  }
+
+  async updateMunicipality(id: string, input: UpdateMunicipalityInput) {
+    const updated = await this.repository.update(id, input);
+    if (!updated) {
+      throw new AppError('Municipality not found', 404, ERROR_CODES.NOT_FOUND);
+    }
+    return updated;
+  }
+
+  // Deactivates the municipality (soft delete) since rides reference it
+  async deleteMunicipality(id: string) {
+    const deleted = await this.repository.softDelete(id);
+    if (!deleted) {
+      throw new AppError('Municipality not found', 404, ERROR_CODES.NOT_FOUND);
+    }
+    return deleted;
   }
 
   /**
