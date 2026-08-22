@@ -38,3 +38,6 @@ Thumbs.db
 
 # Gemini / Antigravity System Artifacts
 .gemini/
+
+# Uploaded user documents (runtime data)
+apps/trigo-backend/uploads/

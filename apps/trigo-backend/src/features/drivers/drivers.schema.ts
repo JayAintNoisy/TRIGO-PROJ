@@ -1,6 +1,14 @@
 import { z } from 'zod';
 import { DRIVER_APPLICATION_STATUS } from '../../shared/constants/roles';
 
+// Documents must be files uploaded through POST /api/uploads
+const uploadedDocumentPath = z
+  .string()
+  .regex(
+    /^\/uploads\/[a-z0-9-]+\/[a-f0-9-]{36}\.(jpg|png|webp|pdf)$/i,
+    'Document must be a path returned by the upload endpoint',
+  );
+
 export const applyDriverSchema = z.object({
   body: z.object({
     municipalityId: z.string().min(1, 'Municipality ID required'),
@@ -10,7 +18,7 @@ export const applyDriverSchema = z.object({
     documents: z.array(
       z.object({
         documentType: z.string().min(1),
-        documentUrl: z.string().url('Must be a valid document URL'),
+        documentUrl: uploadedDocumentPath,
       })
     ).min(1, 'At least one verification document is required'),
   }),
