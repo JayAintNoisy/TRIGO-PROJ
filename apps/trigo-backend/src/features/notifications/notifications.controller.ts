@@ -30,4 +30,13 @@ export class NotificationsController {
       next(error);
     }
   }
+
+  async broadcast(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.broadcast(req.body.title, req.body.body, req.body.audience);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

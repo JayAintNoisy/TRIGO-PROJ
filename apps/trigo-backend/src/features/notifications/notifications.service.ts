@@ -1,78 +1,40 @@
-import { pool } from '../../shared/database/connection';
+import { NotificationsRepository } from './notifications.repository';
 import { NotificationEntity, RegisterDeviceInput } from './notifications.types';
-import { v4 as uuidv4 } from 'uuid';
-
-const mockNotificationsStore: NotificationEntity[] = [
-  {
-    id: 'notif-uuid-001',
-    userId: 'customer-uuid-001',
-    title: 'Welcome to TriGo!',
-    body: 'Book your first tricycle ride in Malaybalay City with ease.',
-    type: 'welcome',
-    isRead: false,
-    createdAt: new Date(),
-  },
-];
 
 export class NotificationsService {
-  async getUserNotifications(userId: string): Promise<NotificationEntity[]> {
-    try {
-      const res = await pool.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
-      if (res.rows.length > 0) {
-        return res.rows.map((row) => ({
-          id: row.id,
-          userId: row.user_id,
-          title: row.title,
-          body: row.body,
-          type: row.type,
-          isRead: row.is_read,
-          metadata: row.metadata,
-          createdAt: new Date(row.created_at),
-        }));
-      }
-    } catch {
-      // Fallback
-    }
+  private repository = new NotificationsRepository();
 
-    return mockNotificationsStore.filter((n) => n.userId === userId || userId === 'admin-uuid-001');
+  async getUserNotifications(userId: string): Promise<NotificationEntity[]> {
+    return this.repository.findAllByUserId(userId);
   }
 
   async markAsRead(id: string, userId: string): Promise<void> {
-    try {
-      await pool.query('UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2', [id, userId]);
-    } catch {
-      // Fallback
-    }
-    const found = mockNotificationsStore.find((n) => n.id === id);
-    if (found) found.isRead = true;
+    await this.repository.markAsRead(id, userId);
   }
 
+  // Persists the FCM device token; push delivery itself is a future enhancement
   async registerDevice(userId: string, input: RegisterDeviceInput): Promise<{ success: boolean }> {
-    // Stores or registers FCM device token for push notifications
+    await this.repository.upsertDeviceToken(userId, input.fcmToken, input.platform);
     return { success: true };
   }
 
   async sendNotification(userId: string, title: string, body: string, type?: string): Promise<NotificationEntity> {
-    const notif: NotificationEntity = {
-      id: uuidv4(),
-      userId,
-      title,
-      body,
-      type: type || 'general',
-      isRead: false,
-      createdAt: new Date(),
-    };
+    return this.repository.create({ userId, title, body, type: type || 'general', isRead: false });
+  }
 
-    try {
-      await pool.query(
-        'INSERT INTO notifications (id, user_id, title, body, type, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [notif.id, notif.userId, notif.title, notif.body, notif.type, notif.isRead, notif.createdAt]
-      );
-    } catch {
-      // Fallback
+  // Admin announcement broadcast to an audience segment
+  async broadcast(title: string, body: string, audience: 'all' | 'drivers' | 'customers'): Promise<{ recipientCount: number }> {
+    const userIds = await this.repository.findUserIdsByAudience(audience);
+    for (const userId of userIds) {
+      await this.repository.create({
+        userId,
+        title,
+        body,
+        type: 'announcement',
+        isRead: false,
+        metadata: { audience },
+      });
     }
-
-    mockNotificationsStore.unshift(notif);
-    return notif;
+    return { recipientCount: userIds.length };
   }
 }
