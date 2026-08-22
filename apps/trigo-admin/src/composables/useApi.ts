@@ -15,4 +15,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Expired or revoked sessions return the user to login instead of failing silently
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && window.location.pathname !== '/login') {
+      localStorage.removeItem('trigo_admin_token');
+      localStorage.removeItem('trigo_admin_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const useApi = () => api;

@@ -139,7 +139,7 @@ import { useApi } from '@/composables/useApi';
 
 const api = useApi();
 
-const transactions = ref([]);
+const transactions = ref<any[]>([]);
 const isLoading = ref(true);
 
 const loadTransactions = async () => {

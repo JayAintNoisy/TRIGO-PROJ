@@ -40,15 +40,32 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, Bike, Users, DollarSign, TrendingUp, Shield, Megaphone, LogOut } from '@lucide/vue';
+import {
+  LayoutDashboard,
+  Bike,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Shield,
+  Megaphone,
+  LogOut,
+  ClipboardList,
+  Route,
+  MapPin,
+  Navigation,
+} from '@lucide/vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { name: 'Applications', path: '/applications', icon: ClipboardList },
   { name: 'Drivers', path: '/drivers', icon: Bike },
   { name: 'Passengers', path: '/users', icon: Users },
+  { name: 'Rides', path: '/rides', icon: Route },
+  { name: 'Municipalities', path: '/municipalities', icon: MapPin },
+  { name: 'Live Tracking', path: '/tracking', icon: Navigation },
   { name: 'Financial', path: '/financial', icon: DollarSign },
   { name: 'Fare Matrix', path: '/fare-matrix', icon: TrendingUp },
   { name: 'Safety & Reports', path: '/safety', icon: Shield },

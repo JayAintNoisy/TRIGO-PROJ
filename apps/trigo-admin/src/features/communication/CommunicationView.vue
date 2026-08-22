@@ -111,7 +111,7 @@ const message = ref('');
 const isSending = ref(false);
 const sendStatus = ref('');
 
-const recentAnnouncements = ref([]);
+const recentAnnouncements = ref<any[]>([]);
 
 const loadAnnouncements = async () => {
   try {
@@ -119,7 +119,12 @@ const loadAnnouncements = async () => {
     recentAnnouncements.value = (res.data.data || []).slice(0, 10).map((n: any) => ({
       title: n.title,
       date: new Date(n.createdAt).toLocaleString(),
-      audience: n.type || 'All Users',
+      audience:
+        n.metadata?.audience === 'drivers'
+          ? 'Drivers Only'
+          : n.metadata?.audience === 'customers'
+            ? 'Passengers Only'
+            : 'All Users',
     }));
   } catch (_) {}
 };
@@ -128,12 +133,14 @@ const sendNotification = async () => {
   if (!message.value.trim()) return;
   isSending.value = true;
   try {
-    await api.post('/notifications', {
+    // Backend broadcast endpoint; passenger audiences are stored as customers
+    const apiAudience = audience.value === 'passengers' ? 'customers' : audience.value;
+    const res = await api.post('/notifications/broadcast', {
       title: message.value.slice(0, 50),
       body: message.value,
-      audience: audience.value,
+      audience: apiAudience,
     });
-    sendStatus.value = 'Notification sent!';
+    sendStatus.value = `Notification sent to ${res.data.data?.recipientCount ?? 0} user(s)!`;
     message.value = '';
     setTimeout(() => (sendStatus.value = ''), 3000);
     loadAnnouncements();

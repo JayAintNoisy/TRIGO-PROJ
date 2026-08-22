@@ -93,8 +93,8 @@ import { useApi } from '@/composables/useApi';
 
 const api = useApi();
 
-const reports = ref([]);
-const activeDrivers = ref([]);
+const reports = ref<any[]>([]);
+const activeDrivers = ref<any[]>([]);
 const isLoading = ref(true);
 
 const loadReports = async () => {

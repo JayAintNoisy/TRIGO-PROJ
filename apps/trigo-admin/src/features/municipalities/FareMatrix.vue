@@ -8,9 +8,19 @@
 
     <!-- Live Preview Banner -->
     <div class="bg-gradient-to-r from-brand-blue-base to-indigo-600 rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-2 mb-6 text-blue-50">
-        <Zap class="w-5 h-5 text-yellow-300 fill-yellow-300" />
-        <span class="font-medium">Live Preview — 2.5 km Ride</span>
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2 text-blue-50">
+          <Zap class="w-5 h-5 text-yellow-300 fill-yellow-300" />
+          <span class="font-medium">Live Preview — 2.5 km Ride</span>
+        </div>
+        <select
+          v-model="selectedMunicipalityId"
+          class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white backdrop-blur-sm"
+        >
+          <option v-for="m in municipalities" :key="m.id" :value="m.id" class="text-brand-slate-800">
+            {{ m.name }}
+          </option>
+        </select>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Standard Fare -->
@@ -230,14 +240,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Zap, Minus, Plus, RefreshCw, Save } from '@lucide/vue';
 import { useApi } from '@/composables/useApi';
 
 const api = useApi();
 
+interface Municipality {
+  id: string;
+  name: string;
+  baseFare: number;
+  perKmRate: number;
+  exclusiveMultiplier: number;
+  minFare: number;
+  nightSurcharge: number;
+  maxPassengers: number;
+}
+
 const isSaving = ref(false);
 const saveMessage = ref('');
+const municipalities = ref<Municipality[]>([]);
+const selectedMunicipalityId = ref('');
 
 const baseFare = ref(15);
 const perKmRate = ref(10);
@@ -250,37 +273,42 @@ const loadFareConfig = async () => {
   try {
     const res = await api.get('/municipalities');
     const list = res.data.data || [];
-    if (list.length > 0) {
-      const m = list[0];
-      if (m.fareConfig) {
-        baseFare.value = m.fareConfig.baseFare ?? 15;
-        perKmRate.value = m.fareConfig.perKmRate ?? 10;
-        exclusiveMultiplier.value = m.fareConfig.exclusiveMultiplier ?? 1.5;
-        minFare.value = m.fareConfig.minFare ?? 20;
-        nightSurcharge.value = m.fareConfig.nightSurcharge ?? 5;
-        maxPassengers.value = m.fareConfig.maxPassengers ?? 4;
-      }
+    municipalities.value = list;
+    if (list.length > 0 && !selectedMunicipalityId.value) {
+      selectedMunicipalityId.value = list[0].id;
     }
+    applySelected();
   } catch (_) {}
 };
 
+// Backend returns flat fare fields on the municipality object
+const applySelected = () => {
+  const m = municipalities.value.find((x) => x.id === selectedMunicipalityId.value);
+  if (!m) return;
+  baseFare.value = m.baseFare ?? 15;
+  perKmRate.value = m.perKmRate ?? 10;
+  exclusiveMultiplier.value = m.exclusiveMultiplier ?? 1.5;
+  minFare.value = m.minFare ?? 20;
+  nightSurcharge.value = m.nightSurcharge ?? 0;
+  maxPassengers.value = m.maxPassengers ?? 4;
+};
+
+watch(selectedMunicipalityId, applySelected);
+
 const saveFareConfig = async () => {
+  if (!selectedMunicipalityId.value) return;
   isSaving.value = true;
   try {
-    const res = await api.get('/municipalities');
-    const list = res.data.data || [];
-    if (list.length > 0) {
-      await api.patch(`/municipalities/${list[0].id}/fare-config`, {
-        baseFare: baseFare.value,
-        perKmRate: perKmRate.value,
-        exclusiveMultiplier: exclusiveMultiplier.value,
-        minFare: minFare.value,
-        nightSurcharge: nightSurcharge.value,
-        maxPassengers: maxPassengers.value,
-      });
-      saveMessage.value = 'Saved successfully';
-      setTimeout(() => (saveMessage.value = ''), 3000);
-    }
+    await api.patch(`/municipalities/${selectedMunicipalityId.value}/fare-config`, {
+      baseFare: baseFare.value,
+      perKmRate: perKmRate.value,
+      exclusiveMultiplier: Number(exclusiveMultiplier.value.toFixed(2)),
+      minFare: minFare.value,
+      nightSurcharge: nightSurcharge.value,
+      maxPassengers: maxPassengers.value,
+    });
+    saveMessage.value = 'Saved successfully';
+    setTimeout(() => (saveMessage.value = ''), 3000);
   } catch (_) {
     saveMessage.value = 'Failed to save';
   } finally {
