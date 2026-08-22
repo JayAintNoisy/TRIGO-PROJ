@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_mode_switch.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
@@ -87,7 +87,7 @@ class _DriverStatusScreenState extends ConsumerState<DriverStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Application Status')),
+      appBar: const AppTopBar(title: 'Application Status'),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadProfile,
@@ -323,32 +323,19 @@ class _DriverStatusScreenState extends ConsumerState<DriverStatusScreen> {
     if (_status == 'approved') {
       return AppButton(
         label: 'Go to Driver Mode',
-        onPressed: () {
-          ref.read(authProvider.notifier).toggleMode(AppUserMode.driver);
-          context.go('/home');
+        onPressed: () async {
+          // Reflect the approval immediately, then open the driver home
+          await ref.read(authProvider.notifier).refreshCurrentUser();
+          if (mounted) context.go('/home');
         },
       );
     }
     if (_status == 'rejected') {
-      return Column(
-        children: [
-          AppButton(
-            label: 'Update & Resubmit',
-            onPressed: () => context.go('/driver/apply'),
-          ),
-          const SizedBox(height: 12),
-          AppButton(
-            label: 'Return to Passenger Mode',
-            variant: AppButtonVariant.ghost,
-            onPressed: () => context.go('/home'),
-          ),
-        ],
+      return AppButton(
+        label: 'Update & Resubmit',
+        onPressed: () => context.go('/driver/apply'),
       );
     }
-    return AppButton(
-      label: 'Return to Passenger Mode',
-      variant: AppButtonVariant.ghost,
-      onPressed: () => context.go('/home'),
-    );
+    return const SizedBox.shrink();
   }
 }

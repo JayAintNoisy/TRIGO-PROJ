@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -278,32 +279,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Ride History',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-        ),
+      appBar: AppTopBar(
+        title: 'Ride History',
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.grey.shade400),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               setState(() => _isLoading = true);
               _loadRides();
             },
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey.shade100,
-            height: 1,
-          ),
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

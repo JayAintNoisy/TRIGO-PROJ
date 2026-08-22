@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
 class EarningsScreen extends ConsumerStatefulWidget {
@@ -71,11 +72,11 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Driver Earnings'),
+      appBar: AppTopBar(
+        title: 'Driver Earnings',
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               setState(() => _isLoading = true);
               _loadEarnings();

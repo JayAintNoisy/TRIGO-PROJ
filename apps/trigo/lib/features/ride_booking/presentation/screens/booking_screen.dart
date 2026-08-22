@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../data/rides_repository.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
@@ -49,7 +50,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Tricycle Ride')),
+      appBar: const AppTopBar(title: 'Book Tricycle Ride'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),

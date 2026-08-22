@@ -220,29 +220,11 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       isDriver
-                          ? 'You are currently using TriGo as a driver'
-                          : 'You are currently booking as a passenger',
+                          ? 'You are using TriGo as a driver'
+                          : 'You are booking as a passenger',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: AppModeSwitch(
-                        currentMode: authState.activeMode,
-                        onModeChanged: (mode) {
-                          if (mode == authState.activeMode) return;
-                          ref.read(authProvider.notifier).toggleMode(mode);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(mode == AppUserMode.driver
-                                  ? 'You\u2019re now driving \u2014 go online '
-                                      'to receive requests'
-                                  : 'Switched to passenger mode'),
-                            ),
-                          );
-                        },
                       ),
                     ),
                   ],

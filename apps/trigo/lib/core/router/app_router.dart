@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../shared/widgets/app_mode_switch.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/passenger_register_screen.dart';
@@ -21,7 +22,7 @@ import '../../features/notifications/presentation/screens/notifications_screen.d
 import '../../features/support/presentation/screens/help_support_screen.dart';
 import '../../shared/widgets/app_scaffold.dart';
 
-final authRedirectNotifier = ValueNotifier<bool>(false);
+final authRedirectNotifier = ValueNotifier<AuthState?>(null);
 
 final _protectedRoutes = [
   '/home', '/history', '/profile', '/book', '/pick-driver',
@@ -29,31 +30,56 @@ final _protectedRoutes = [
   '/notifications', '/settings', '/support',
 ];
 
+// Main pages an unverified driver must not reach until their application is
+// approved; verification screens and account pages stay accessible.
+final _driverBlockedRoutes = [
+  '/home', '/history', '/driver/earnings', '/book', '/pick-driver', '/ride/',
+];
+
 final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'shell');
+
+// A driver whose application is not yet approved (pending/reviewing/rejected/
+// suspended) or who registered as a driver but never submitted details.
+bool _isUnverifiedDriver(AuthState auth) {
+  final status = auth.driverStatus;
+  if (status == 'approved') return false;
+  if (status != null) return true;
+  return auth.activeMode == AppUserMode.driver;
+}
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/landing',
   refreshListenable: authRedirectNotifier,
   redirect: (context, state) async {
-    final isAuth = authRedirectNotifier.value;
+    final auth = authRedirectNotifier.value;
+    final isAuth = auth?.isAuthenticated ?? false;
     final location = state.matchedLocation;
     final isOnProtected =
         _protectedRoutes.any((r) => location.startsWith(r));
 
     if (isOnProtected && !isAuth) return '/login';
 
+    // Unverified drivers are kept on the verification flow instead of the
+    // main ride/driver pages (e.g. after login or app restart).
+    if (isAuth && _isUnverifiedDriver(auth!)) {
+      final isOnBlocked =
+          _driverBlockedRoutes.any((r) => location.startsWith(r));
+      if (isOnBlocked) {
+        return auth.driverStatus == null ? '/driver/apply' : '/driver/status';
+      }
+    }
+
     final authPages = ['/landing', '/login', '/register'];
     final isOnAuthPage = authPages.any((p) => location.startsWith(p));
     if (isAuth && isOnAuthPage) return '/home';
 
-    // First-run users who never picked a role see the showcase; everyone
-    // else lands straight on Login
+    // First-run users see the showcase; everyone else lands straight on Login
     if (!isAuth && location.startsWith('/landing')) {
-      if (await hasStoredMode()) return '/login';
+      if (await hasOnboarded()) return '/login';
     }
     return null;
   },

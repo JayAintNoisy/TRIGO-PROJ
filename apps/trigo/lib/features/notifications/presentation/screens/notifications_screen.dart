@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -186,17 +187,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Notifications',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-      ),
+      appBar: const AppTopBar(title: 'Notifications'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

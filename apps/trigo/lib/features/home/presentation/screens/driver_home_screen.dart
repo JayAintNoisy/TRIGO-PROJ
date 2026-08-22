@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
-import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../ride_booking/presentation/widgets/incoming_request_modal.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
@@ -102,24 +100,12 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     }
   }
 
-  // One-tap passenger/driver switching — only offered to approved drivers
-  void _switchMode(AppUserMode mode) {
-    if (mode == ref.read(authProvider).activeMode) return;
-    ref.read(authProvider.notifier).toggleMode(mode);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mode == AppUserMode.driver
-            ? 'You\u2019re now driving \u2014 go online to receive requests'
-            : 'Switched to passenger mode'),
-      ),
-    );
-  }
+  // One-tap passenger/driver switching lives on the Profile page now.
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final name = authState.name ?? 'Driver';
-    final canDrive = kDebugMode || authState.role == 'driver';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -244,13 +230,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               ),
               child: Column(
                 children: [
-                  if (canDrive) ...[
-                    AppModeSwitch(
-                      currentMode: authState.activeMode,
-                      onModeChanged: _switchMode,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
                   Row(
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,

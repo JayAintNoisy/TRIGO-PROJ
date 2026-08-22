@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../data/rides_repository.dart';
 
 class PickDriverScreen extends ConsumerStatefulWidget {
@@ -245,25 +246,7 @@ class _PickDriverScreenState extends ConsumerState<PickDriverScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Choose Your Driver',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey.shade100,
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: const AppTopBar(title: 'Choose Your Driver'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

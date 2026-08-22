@@ -4,8 +4,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/utils/input_validators.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_input.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 import '../../data/upload_repository.dart';
 
@@ -41,6 +43,7 @@ class _DriverApplicationScreenState
   final _licenseController = TextEditingController();
   final _plateController = TextEditingController();
   final _modelController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   List<dynamic> _municipalities = [];
   String? _municipalityId;
@@ -157,16 +160,7 @@ class _DriverApplicationScreenState
   }
 
   bool _validateForm() {
-    if (_licenseController.text.trim().length < 3 ||
-        _plateController.text.trim().length < 3) {
-      setState(() => _error =
-          'Enter your driver\u2019s license number and tricycle plate number');
-      return false;
-    }
-    if (_municipalityId == null) {
-      setState(() => _error = 'Select your service municipality');
-      return false;
-    }
+    if (!_formKey.currentState!.validate()) return false;
     for (final slot in _documents) {
       if (slot.isRequired && (slot.uploadedUrl == null)) {
         setState(() => _error = 'Please upload ${slot.label}');
@@ -213,56 +207,60 @@ class _DriverApplicationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tricycle Details')),
+      appBar: const AppTopBar(title: 'Tricycle Details'),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_rejectionReason != null)
-                      _buildRejectionBanner(),
-                    const Text(
-                      'Driver Verification',
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const Text(
-                      'Submit license, tricycle details, and documents '
-                      'for admin verification',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    AppInput(
-                      label: 'Driver License Number',
-                      hint: 'N01-12-345678',
-                      controller: _licenseController,
-                    ),
-                    const SizedBox(height: 16),
-                    AppInput(
-                      label: 'Tricycle Plate Number',
-                      hint: '123-ABC',
-                      controller: _plateController,
-                    ),
-                    const SizedBox(height: 16),
-                    AppInput(
-                      label: 'Tricycle Model (Optional)',
-                      hint: 'Kawasaki Barako 175',
-                      controller: _modelController,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMunicipalityDropdown(),
-                    const SizedBox(height: 24),
-                    ..._documents.map(_buildDocumentTile),
-                    if (_error != null) ...[
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_rejectionReason != null)
+                        _buildRejectionBanner(),
+                      const Text(
+                        'Driver Verification',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const Text(
+                        'Submit license, tricycle details, and documents '
+                        'for admin verification',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 24),
+                      AppInput(
+                        label: 'Driver License Number',
+                        hint: 'N01-12-345678',
+                        controller: _licenseController,
+                        validator: InputValidators.driverLicense,
+                      ),
                       const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(12),
+                      AppInput(
+                        label: 'Tricycle Plate Number',
+                        hint: '123-ABC',
+                        controller: _plateController,
+                        validator: InputValidators.plateNumber,
+                      ),
+                      const SizedBox(height: 16),
+                      AppInput(
+                        label: 'Tricycle Model (Optional)',
+                        hint: 'Kawasaki Barako 175',
+                        controller: _modelController,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMunicipalityDropdown(),
+                      const SizedBox(height: 24),
+                      ..._documents.map(_buildDocumentTile),
+                      if (_error != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _error!,
@@ -272,15 +270,16 @@ class _DriverApplicationScreenState
                       ),
                     ],
                     const SizedBox(height: 32),
-                    AppButton(
-                      label: _rejectionReason != null
-                          ? 'Resubmit Application'
-                          : 'Submit for Review',
-                      isLoading: _isSubmitting,
-                      onPressed:
-                          _isSubmitting ? null : _submitApplication,
-                    ),
-                  ],
+                      AppButton(
+                        label: _rejectionReason != null
+                            ? 'Resubmit Application'
+                            : 'Submit for Review',
+                        isLoading: _isSubmitting,
+                        onPressed:
+                            _isSubmitting ? null : _submitApplication,
+                      ),
+                    ],
+                  ),
                 ),
               ),
       ),
@@ -348,6 +347,8 @@ class _DriverApplicationScreenState
             child: Text(m['name'] as String),
           ),
       ],
+      validator: (value) => InputValidators.required(
+          value, 'Select your service municipality'),
       onChanged: (value) => setState(() => _municipalityId = value),
     );
   }

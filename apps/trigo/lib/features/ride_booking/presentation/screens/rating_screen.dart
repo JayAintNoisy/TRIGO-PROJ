@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../data/rides_repository.dart';
 
 class RatingScreen extends ConsumerStatefulWidget {
@@ -61,11 +62,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.grey.shade50,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      appBar: const AppTopBar(title: 'Rate Your Ride'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
         child: Column(

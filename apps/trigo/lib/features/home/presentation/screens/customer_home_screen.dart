@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
-import '../../../../shared/widgets/app_mode_switch.dart';
+import '../../../../shared/utils/input_validators.dart';
+import '../../../../shared/widgets/app_input.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -17,6 +17,7 @@ class CustomerHomeScreen extends ConsumerStatefulWidget {
 class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   final _pickupController = TextEditingController();
   final _dropoffController = TextEditingController();
+  final _bookingFormKey = GlobalKey<FormState>();
   final _ridesRepository = RidesRepository();
   int _passengerCount = 1;
   bool _isRequesting = false;
@@ -47,6 +48,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
 
   Future<void> _findTrike() async {
     if (_isRequesting) return;
+    if (!_bookingFormKey.currentState!.validate()) return;
     setState(() => _isRequesting = true);
     try {
       if (_municipalities.isEmpty) {
@@ -96,23 +98,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     }
   }
 
-  // One-tap passenger/driver switching — only offered to approved drivers
-  void _switchMode(AppUserMode mode) {
-    if (mode == ref.read(authProvider).activeMode) return;
-    ref.read(authProvider.notifier).toggleMode(mode);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mode == AppUserMode.driver
-            ? 'You\u2019re now driving \u2014 go online to receive requests'
-            : 'Switched to passenger mode'),
-      ),
-    );
-  }
+  // One-tap passenger/driver switching lives on the Profile page now.
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final canDrive = kDebugMode || authState.role == 'driver';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -205,28 +195,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'TRIGO',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const Spacer(),
                   Row(
                     children: [
-                      if (canDrive) ...[
-                        AppModeSwitch(
-                          currentMode: authState.activeMode,
-                          onModeChanged: _switchMode,
-                        ),
-                        const SizedBox(width: 8),
-                      ],
                       Stack(
                         children: [
                           IconButton(
@@ -318,54 +289,28 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.white,
-                      ),
-                      child: TextField(
-                        controller: _pickupController,
-                        decoration: const InputDecoration(
-                          hintText: 'Current Location',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF059669),
-                            fontWeight: FontWeight.w500,
+                    Form(
+                      key: _bookingFormKey,
+                      child: Column(
+                        children: [
+                          AppInput(
+                            hint: 'Current Location',
+                            controller: _pickupController,
+                            prefixIcon: const Icon(Icons.my_location,
+                                color: Color(0xFF10B981)),
+                            validator: (value) => InputValidators.required(
+                                value, 'Enter your pickup location'),
                           ),
-                          prefixIcon: Icon(Icons.my_location,
-                              color: Color(0xFF10B981)),
-                          border: InputBorder.none,
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        style: const TextStyle(
-                          color: Color(0xFF059669),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextField(
-                        controller: _dropoffController,
-                        decoration: const InputDecoration(
-                          hintText: 'Drop-off Destination',
-                          hintStyle: TextStyle(
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 12),
+                          AppInput(
+                            hint: 'Drop-off Destination',
+                            controller: _dropoffController,
+                            prefixIcon: const Icon(Icons.location_on,
+                                color: Color(0xFFEF4444)),
+                            validator: (value) => InputValidators.required(
+                                value, 'Enter your drop-off destination'),
                           ),
-                          prefixIcon: Icon(Icons.location_on,
-                              color: Color(0xFFEF4444)),
-                          border: InputBorder.none,
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
