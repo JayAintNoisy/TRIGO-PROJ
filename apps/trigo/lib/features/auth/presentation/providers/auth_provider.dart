@@ -23,6 +23,7 @@ Future<void> _markOnboarded() async {
 class AuthState {
   final bool isLoading;
   final bool isAuthenticated;
+  final bool isBootstrapped;
   final String? error;
   final String? token;
   final String? userId;
@@ -37,6 +38,7 @@ class AuthState {
   const AuthState({
     this.isLoading = false,
     this.isAuthenticated = false,
+    this.isBootstrapped = false,
     this.error,
     this.token,
     this.userId,
@@ -52,6 +54,7 @@ class AuthState {
   AuthState copyWith({
     bool? isLoading,
     bool? isAuthenticated,
+    bool? isBootstrapped,
     String? error,
     String? token,
     String? userId,
@@ -68,6 +71,7 @@ class AuthState {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isBootstrapped: isBootstrapped ?? this.isBootstrapped,
       error: clearError ? null : (error ?? this.error),
       token: clearUser ? null : (token ?? this.token),
       userId: clearUser ? null : (userId ?? this.userId),
@@ -138,10 +142,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         firstName: firstName,
         lastName: lastName,
         phone: phone,
+        asDriver: asDriver,
       );
-      // The registration choice commits the user's initial mode permanently
-      final activeMode =
-          asDriver ? AppUserMode.driver : AppUserMode.customer;
       await _markOnboarded();
       state = state.copyWith(
         isLoading: false,
@@ -154,7 +156,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         phone: response.user.phone,
         profilePhotoUrl: response.user.profilePhotoUrl,
         driverStatus: response.user.driverStatus,
-        activeMode: activeMode,
+        activeMode: _modeFor(response.user),
       );
     } catch (e) {
       state = state.copyWith(
@@ -166,14 +168,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> tryAutoLogin() async {
     final token = await tokenProvider.getToken();
-    if (token == null) return;
-
-    state = state.copyWith(isLoading: true);
     try {
+      if (token == null) {
+        state = const AuthState(isBootstrapped: true);
+        return;
+      }
+
+      state = state.copyWith(isLoading: true);
       final user = await _repository.getCurrentUser();
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
+        isBootstrapped: true,
         token: token,
         userId: user.id,
         name: user.name,
@@ -185,7 +191,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         activeMode: _modeFor(user),
       );
     } catch (_) {
-      state = const AuthState();
+      state = const AuthState(isBootstrapped: true);
     }
   }
 
@@ -210,17 +216,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// The mode is determined by the backend response: an account with a driver
-  /// profile (any application status) or a driver role is a driver account;
-  /// everyone else is a customer. Users cannot switch freely.
+  /// profile (any application status), a driver role, or a stored driver
+  /// registration intent is a driver account; everyone else is a customer.
+  /// Users cannot switch freely.
   AppUserMode _modeFor(UserData user) {
-    return user.driverStatus != null || user.role == 'driver'
+    return user.driverIntent ||
+            user.driverStatus != null ||
+            user.role == 'driver'
         ? AppUserMode.driver
         : AppUserMode.customer;
   }
 
   Future<void> logout() async {
     await _repository.logout();
-    state = const AuthState();
+    state = const AuthState(isBootstrapped: true);
   }
 }
 

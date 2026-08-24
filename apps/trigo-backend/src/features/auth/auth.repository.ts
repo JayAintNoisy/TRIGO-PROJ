@@ -17,6 +17,7 @@ export class AuthRepository {
       lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
+      driverIntent: row.driver_intent === true,
       profilePhotoUrl: row.profile_photo_url,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -36,6 +37,7 @@ export class AuthRepository {
       lastName: row.last_name,
       phone: row.phone,
       role: row.role as USER_ROLE,
+      driverIntent: row.driver_intent === true,
       profilePhotoUrl: row.profile_photo_url,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -53,8 +55,8 @@ export class AuthRepository {
     };
 
     await pool.query(
-      `INSERT INTO users (id, email, password_hash, first_name, last_name, phone, role, profile_photo_url, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      `INSERT INTO users (id, email, password_hash, first_name, last_name, phone, role, driver_intent, profile_photo_url, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         newUser.id,
         newUser.email,
@@ -63,6 +65,7 @@ export class AuthRepository {
         newUser.lastName,
         newUser.phone,
         newUser.role,
+        newUser.driverIntent,
         newUser.profilePhotoUrl || null,
         newUser.createdAt,
         newUser.updatedAt,

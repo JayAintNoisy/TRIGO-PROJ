@@ -8,6 +8,7 @@ export interface UserEntity {
   lastName: string;
   phone: string;
   role: USER_ROLE;
+  driverIntent: boolean;
   profilePhotoUrl?: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -19,6 +20,7 @@ export interface RegisterInput {
   firstName: string;
   lastName: string;
   phone: string;
+  asDriver?: boolean;
 }
 
 export interface LoginInput {
@@ -36,6 +38,7 @@ export interface AuthResponse {
     lastName: string;
     phone: string;
     role: USER_ROLE;
+    driverIntent: boolean;
     profilePhotoUrl?: string | null;
     driverProfile?: any;
   };

@@ -27,6 +27,7 @@ class UserData {
   final String role;
   final String? profilePhotoUrl;
   final String? driverStatus;
+  final bool driverIntent;
 
   const UserData({
     required this.id,
@@ -37,6 +38,7 @@ class UserData {
     required this.role,
     this.profilePhotoUrl,
     this.driverStatus,
+    this.driverIntent = false,
   });
 
   String get name => '$firstName $lastName'.trim();
@@ -54,6 +56,7 @@ class UserData {
       driverStatus: driverProfile is Map
           ? driverProfile['applicationStatus'] as String?
           : null,
+      driverIntent: json['driverIntent'] == true,
     );
   }
 }

@@ -39,7 +39,7 @@ class AuthRepository {
     required String firstName,
     required String lastName,
     required String phone,
-    String? role,
+    bool asDriver = false,
   }) async {
     try {
       final response = await _dio.post(
@@ -50,7 +50,7 @@ class AuthRepository {
           'firstName': firstName,
           'lastName': lastName,
           'phone': phone,
-          if (role != null) 'role': role,
+          'asDriver': asDriver,
         },
       );
 
