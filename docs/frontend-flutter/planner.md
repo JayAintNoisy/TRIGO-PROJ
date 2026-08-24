@@ -18,10 +18,11 @@
 - **Networking**: `dio` + `retrofit`
 - **Models**: `freezed` + `json_serializable`
 - **Theme**: `flex_color_scheme` (`FlexThemeData.light`)
+- **Maps & Location**: `mapbox_maps_flutter` ^2.29.0 (replaced Google Maps) + `turf` ^0.0.12 for geometry; `geolocator` for GPS; `connectivity_plus` for the boot-time connectivity gate
 - **Structure**: Monorepo workspace — `apps/trigo/`
 
 ### Dual-Role Architecture (Backend-Determined Mode)
-The app serves passengers and drivers on one install. Mode is derived from the backend (`driverStatus`/`role` via `AuthState._modeFor`), not a free toggle. `app_mode_switch.dart` now exports only `enum AppUserMode`.
+The app serves passengers and drivers on one install. Mode is derived from the backend (`driverStatus`/`role` via `AuthState._modeFor`), not a free toggle. `app_mode_switch.dart` now exports only `enum AppUserMode`. Driver intent persists across restarts: registration sets `driver_intent` (exposed as `driverIntent` on `/auth/me`), and `AuthState._modeFor` defaults to driver mode when `driverIntent` is true even before a profile is approved.
 - **Passenger Mode**: Book rides, set pickup/dropoff, live ETA, rate drivers.
 - **Driver Mode**: Requires approved `driver_profiles.application_status`; go online/offline, incoming-request modal, earnings.
 - **Verification gating**: `app_router.dart` redirects unverified drivers from `_driverBlockedRoutes` to `/driver/apply` or `/driver/status`; onboarding is gated by `hasOnboarded()` (`trigo_onboarded` in `SharedPreferences`).
@@ -49,18 +50,20 @@ apps/trigo/lib/
 │   │   ├── app_card.dart              # Card, 24px radius, soft shadow
 │   │   ├── app_top_bar.dart           # Blue header with back + centered title
 │   │   ├── app_back_button.dart       # Reusable back with fallback
-│   │   ├── app_scaffold.dart          # Shell with bottom nav
-│   │   └── app_mode_switch.dart       # enum AppUserMode only
-│   └── utils/
-│       ├── input_validators.dart      # required/email/phone/matches/etc.
-│       └── app_snackbar.dart          # Snack helper
+  │   │   ├── app_scaffold.dart          # Shell with bottom nav
+  │   │   ├── app_splash_screen.dart     # Pre-bootstrap splash (boot gate)
+  │   │   └── app_mode_switch.dart       # enum AppUserMode only
+  │   └── utils/
+  │       ├── input_validators.dart      # required/email/phone/matches/etc.
+  │       ├── app_snackbar.dart          # Snack helper
+  │       └── municipality_locator.dart  # locateMunicipality() + boundaryRing() (Mapbox)
 └── features/
      ├── auth/                          # Login, Passenger/DriverRegister,
      │                                  # OnboardingScreen, authProvider
-     ├── home/                          # CustomerHome, DriverHome, HomeSwitcher
+     ├── home/                          # CustomerHome (DraggableScrollableSheet booking sheet), DriverHome (map + location broadcast), HomeSwitcher; widgets/customer_map_view.dart, widgets/driver_map_view.dart
      ├── ride_booking/                  # Booking, PickDriver, Tracking,
      │                                  # Complete, Rating, incoming modal
-     ├── driver_application/            # Application + Status + upload_repository
+     ├── driver_application/            # Application + Status + upload_repository; widgets/service_area_map_picker.dart (Mapbox)
      ├── earnings/                      # EarningsScreen
      ├── history/                       # HistoryScreen
      ├── notifications/                 # NotificationsScreen

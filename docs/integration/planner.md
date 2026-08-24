@@ -39,4 +39,4 @@ When planning API integration:
 | `rides` | `POST /rides`, `PATCH /rides/:id/...`, `GET /rides/available`, `POST /rides/:id/rate` | Owner checks, cancel fees, idempotent ratings |
 | `tracking` | `POST /tracking/location`, `GET /tracking/ride/:id` | `accuracy` + history points |
 | `notifications` | `POST /notifications/broadcast`, `POST /notifications/device-token` | Audience `all`/`drivers`/`customers`; `device_tokens` unique per user/platform |
-| `auth` | `POST /auth/logout`, `GET /auth/me` (includes `driverProfile`) | First/last name fields |
+| `auth` | `POST /auth/register` (optional `asDriver` → sets `driver_intent`), `POST /auth/logout`, `GET /auth/me` (includes `driverProfile` and `driverIntent`) | First/last name fields |

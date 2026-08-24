@@ -34,7 +34,7 @@ src/features/<domain>/
 
 | Domain | Purpose |
 |--------|---------|
-| `auth` | Register (always `customer`), login, refresh, logout, `/auth/me` (includes `driverProfile`); users use `first_name`/`last_name` |
+| `auth` | Register (always `customer`, with optional `asDriver` that sets `driver_intent`), login, refresh, logout, `/auth/me` (includes `driverProfile` and `driverIntent`); users use `first_name`/`last_name` |
 | `users` | Directory + profile update (`firstName`/`lastName`/`phone`/`photoUrl`) |
 | `municipalities` | Jurisdictions + fare config (`base_fare`, `per_km_rate`, `exclusive_multiplier`, `min_fare`, `night_surcharge`, `max_passengers`); CRUD + partial updates |
 | `drivers` | App lifecycle `pending`→`reviewing`→`approved`/`rejected`/`suspended`; transactional doc replace; `review`/`approve`/`reject` endpoints; online toggle |

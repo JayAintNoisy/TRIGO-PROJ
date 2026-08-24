@@ -72,6 +72,7 @@ All design tokens are configured in `src/assets/styles/main.css` under the `@the
 - `FareMatrix.vue`: per-municipality edits for `base_fare`, `per_km_rate`, `exclusive_multiplier`, `min_fare`, `night_surcharge`, `max_passengers`.
 - `CommunicationView.vue`: broadcast to `all`/`drivers`/`customers` with recipient counts.
 - `useApi.ts`: 401 interceptor redirects to login.
+- `AppSidebar.vue`: nav label "Passengers" renamed to "Users" (matches the `users` directory view).
 
 ---
 

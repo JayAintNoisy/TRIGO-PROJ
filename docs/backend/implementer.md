@@ -23,4 +23,4 @@
 1. Run Vitest: `npm run test:backend`. All 30 tests must pass.
 2. Type-check: `npx tsc --noEmit` in `apps/trigo-backend/` (or `npm run build:backend`).
 3. Verify zero `any` types; `uploads/` is gitignored (runtime files, use multer memory storage).
-4. Schema note: `users` uses `first_name`/`last_name`; `driver_profiles.application_status` includes `reviewing`.
+4. Schema note: `users` uses `first_name`/`last_name` and a `driver_intent` boolean (set from the register `asDriver` flag, surfaced as `driverIntent` via `/auth/me` so the app resumes driver onboarding after restart); `driver_profiles.application_status` includes `reviewing`.

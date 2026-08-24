@@ -105,6 +105,14 @@ if (!formKey.currentState!.validate()) return;
 - `AuthState` holds `driverStatus` + `activeMode`; `auth_provider.dart` exposes `hasOnboarded()`/`_markOnboarded()` and `refreshCurrentUser()` for post-approval refresh; mode is backend-derived (`_modeFor`).
 - `UserData` has `firstName`/`lastName` + computed `name`; `driverStatus` parsed from `driverProfile.applicationStatus`.
 - Register via `firstName`/`lastName` (two fields, `Row` layout) + `confirmPassword` validated with `InputValidators.matches`.
+- `register()` accepts `asDriver`; the backend stores `driver_intent` and `/auth/me` returns `driverIntent`. `AuthState._modeFor` prefers driver mode when `driverIntent` is true, so an unverified registrant is dropped straight into driver onboarding after a restart.
+- Boot gate: `app.dart` runs a connectivity check (`connectivity_plus`, fail-open) + `tryAutoLogin` in a post-frame callback and only mounts the router once `AuthState.isBootstrapped`; `app_splash_screen.dart` is the pre-bootstrap splash.
+
+### 4. Maps (Mapbox) Notes
+- `main.dart` calls `MapboxOptions.setAccessToken(dotenv['MAPBOX_PUBLIC_TOKEN'])` at startup and `MapboxMapsOptions.setTileStoreUsageMode(TileStoreUsageMode.READ_AND_UPDATE)` for offline tile caching. `MAPBOX_PUBLIC_TOKEN` lives in `.env` (see `.env.example`).
+- Native prerequisites (already wired): Android `app/build.gradle.kts` adds `id("kotlin-android")` (required by the Mapbox Gradle plugin under AGP 9); root `android/build.gradle.kts` applies `kotlin-android` to `:mapbox_maps_flutter`; `AndroidManifest.xml` declares `ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION`; iOS `Info.plist` declares `NSLocationWhenInUseUsageDescription`.
+- `shared/utils/municipality_locator.dart`: `locateMunicipality(lat, lng, list)` → nearest `MunicipalityMatch` (`centerLat`/`centerLng`/`radiusKm`); `boundaryRing(m)` → circular polygon ring for `PolygonAnnotationManager`.
+- Map widgets (`*_map_view.dart`, `service_area_map_picker.dart`) render a full-screen `MapWidget` inside a `Stack`; annotation taps use `addInteraction(TapInteraction(FeaturesetDescriptor(layerId: ...), action))` and read `feature.id?.id`.
 
 ---
 
@@ -117,8 +125,8 @@ if (!formKey.currentState!.validate()) return;
 2. **Font Weights**: `FontWeight.w800` for extrabold.
 3. **No Hardcoded Hex Colors**: Use `Theme.of(context)` or `AppColors`.
 4. **Headers & Inputs**:
-   - Use `AppTopBar` for every screen header.
-   - `AppInput` is `TextFormField`; always supply `validator` via `InputValidators`.
+    - Use `AppTopBar` for every screen header, **except** full-screen map screens (`driver_home`, `customer_home`) which use a floating notification button over a `Stack` + `MapWidget`.
+    - `AppInput` is `TextFormField`; always supply `validator` via `InputValidators`.
 5. **Icons & Styling**:
    - No emojis; use Material Icons.
    - Soft `BoxShadow` (`alpha:0.05`, blur 10) for cards; `grey.shade100/200` for dividers.
