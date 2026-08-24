@@ -43,11 +43,27 @@ export class DriversRepository {
     return this.findAll();
   }
 
-  async findOnlineDrivers(): Promise<DriverProfileEntity[]> {
+  async findOnlineDrivers(freshnessMinutes = 3): Promise<DriverProfileEntity[]> {
     const res = await pool.query(
-      `${DRIVER_SELECT} WHERE dp.application_status = 'approved' AND dp.is_online = true ORDER BY dp.updated_at DESC`
+      `${DRIVER_SELECT} 
+       WHERE dp.application_status = 'approved' 
+         AND dp.is_online = true 
+         AND dp.updated_at >= NOW() - ($1 || ' minutes')::INTERVAL 
+       ORDER BY dp.updated_at DESC`,
+      [freshnessMinutes]
     );
     return res.rows.map(this.mapRowToEntity);
+  }
+
+  async sweepStaleDrivers(thresholdMinutes = 3): Promise<number> {
+    const res = await pool.query(
+      `UPDATE driver_profiles
+       SET is_online = false, updated_at = NOW()
+       WHERE is_online = true
+         AND updated_at < NOW() - ($1 || ' minutes')::INTERVAL`,
+      [thresholdMinutes]
+    );
+    return res.rowCount || 0;
   }
 
   async findDocumentsByProfileId(driverProfileId: string): Promise<DriverDocumentEntity[]> {

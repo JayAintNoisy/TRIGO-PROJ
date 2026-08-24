@@ -56,9 +56,13 @@ export class DriversService {
   }
 
   // Online approved drivers — visible to any authenticated user so customers
-  // can see who is nearby
-  async getOnlineDrivers() {
-    return this.repository.findOnlineDrivers();
+  // can see who is nearby within the 3-minute freshness threshold
+  async getOnlineDrivers(freshnessMinutes = 3) {
+    return this.repository.findOnlineDrivers(freshnessMinutes);
+  }
+
+  async sweepStaleDrivers(thresholdMinutes = 3) {
+    return this.repository.sweepStaleDrivers(thresholdMinutes);
   }
 
   async getDriverById(id: string) {

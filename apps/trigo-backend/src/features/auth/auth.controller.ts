@@ -42,7 +42,7 @@ export class AuthController {
 
   async logout(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await authService.logout();
+      const result = await authService.logout(req.user?.id);
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);

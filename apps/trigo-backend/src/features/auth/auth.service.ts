@@ -26,8 +26,10 @@ export class AuthService {
       lastName: input.lastName,
       phone: input.phone,
       // Public registration always starts as customer; drivers upgrade only
-      // through the application approval flow
+      // through the application approval flow. The requested mode is kept as
+      // an intent so the client can restore the verification flow on restart.
       role: USER_ROLE.CUSTOMER,
+      driverIntent: input.asDriver ?? false,
     });
 
     return this.generateTokensAndResponse(user);
@@ -80,13 +82,21 @@ export class AuthService {
       lastName: user.lastName,
       phone: user.phone,
       role: user.role,
+      driverIntent: !!user.driverIntent,
       profilePhotoUrl: user.profilePhotoUrl,
       driverProfile: driverProfile || null,
     };
   }
 
-  // Stateless JWTs cannot be revoked server-side; the client discards its tokens
-  async logout(): Promise<{ success: boolean }> {
+  async logout(userId?: string): Promise<{ success: boolean }> {
+    if (userId) {
+      try {
+        const driver = await this.driversRepository.findByUserId(userId);
+        if (driver) {
+          await this.driversRepository.setOnlineStatus(driver.id, false);
+        }
+      } catch (_) {}
+    }
     return { success: true };
   }
 
@@ -114,6 +124,7 @@ export class AuthService {
         lastName: user.lastName,
         phone: user.phone,
         role: user.role,
+        driverIntent: !!user.driverIntent,
         profilePhotoUrl: user.profilePhotoUrl,
         driverProfile: driverProfile || null,
       },
