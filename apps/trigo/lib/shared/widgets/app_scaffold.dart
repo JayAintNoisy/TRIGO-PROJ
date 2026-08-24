@@ -5,35 +5,21 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 import 'app_mode_switch.dart';
 
 class AppScaffold extends ConsumerWidget {
-  final Widget child;
-  const AppScaffold({super.key, required this.child});
-
-  int _calculateSelectedIndex(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/history') || location.startsWith('/driver/earnings')) {
-      return 1;
-    }
-    if (location.startsWith('/profile')) {
-      return 2;
-    }
-    return 0; // default to Home
-  }
+  final StatefulNavigationShell navigationShell;
+  const AppScaffold({super.key, required this.navigationShell});
 
   void _onItemTapped(int index, BuildContext context, AppUserMode mode) {
-    switch (index) {
-      case 0:
-        context.go('/home'); 
-        break;
-      case 1:
-        if (mode == AppUserMode.driver) {
-          context.go('/driver/earnings');
-        } else {
-          context.go('/history');
-        }
-        break;
-      case 2:
-        context.go('/profile');
-        break;
+    if (index == 1) {
+      if (mode == AppUserMode.driver) {
+        context.go('/driver/earnings');
+      } else {
+        context.go('/history');
+      }
+    } else {
+      navigationShell.goBranch(
+        index,
+        initialLocation: index == navigationShell.currentIndex,
+      );
     }
   }
 
@@ -41,16 +27,16 @@ class AppScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final isDriver = authState.activeMode == AppUserMode.driver;
-    final currentIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
-      body: child,
+      extendBody: true,
+      body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.95),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.08),
               offset: const Offset(0, -2),
               blurRadius: 10,
             ),
@@ -58,7 +44,7 @@ class AppScaffold extends ConsumerWidget {
         ),
         child: SafeArea(
           child: BottomNavigationBar(
-            currentIndex: currentIndex,
+            currentIndex: navigationShell.currentIndex,
             onTap: (index) => _onItemTapped(index, context, authState.activeMode),
             backgroundColor: Colors.transparent,
             elevation: 0,

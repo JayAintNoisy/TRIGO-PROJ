@@ -116,6 +116,20 @@ class DriversRepository {
     }
   }
 
+  /// Publishes the driver's GPS fix so /drivers/online and the admin live
+  /// tracking map reflect their position.
+  Future<void> broadcastLocation({
+    required double lat,
+    required double lng,
+    double? accuracy,
+  }) async {
+    await _dio.post(ApiEndpoints.trackingLocation, data: {
+      'lat': lat,
+      'lng': lng,
+      if (accuracy != null) 'accuracy': accuracy,
+    });
+  }
+
   Future<dynamic> apply({
     required String municipalityId,
     required String licenseNumber,

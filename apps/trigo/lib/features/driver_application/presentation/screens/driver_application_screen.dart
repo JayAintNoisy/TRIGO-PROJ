@@ -10,11 +10,13 @@ import '../../../../shared/widgets/app_input.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 import '../../data/upload_repository.dart';
+import '../widgets/service_area_map_picker.dart';
 
 class _DocumentSlot {
   final String label;
   final String documentType;
   final bool isRequired;
+  final bool imagesOnly;
   bool isUploading = false;
   String? uploadedUrl;
   File? localPreview;
@@ -23,6 +25,7 @@ class _DocumentSlot {
     required this.label,
     required this.documentType,
     required this.isRequired,
+    this.imagesOnly = false,
   });
 }
 
@@ -47,6 +50,8 @@ class _DriverApplicationScreenState
 
   List<dynamic> _municipalities = [];
   String? _municipalityId;
+  double? _initialCenterLat;
+  double? _initialCenterLng;
   String? _rejectionReason;
 
   late final List<_DocumentSlot> _documents;
@@ -59,6 +64,12 @@ class _DriverApplicationScreenState
   void initState() {
     super.initState();
     _documents = [
+      _DocumentSlot(
+        label: 'Tricycle Picture',
+        documentType: 'tricycle_picture',
+        isRequired: true,
+        imagesOnly: true,
+      ),
       _DocumentSlot(
         label: "Driver's License Photo",
         documentType: 'license_photo',
@@ -112,10 +123,19 @@ class _DriverApplicationScreenState
         return;
       }
 
+      // Resubmissions start the map on the previously chosen municipality
+      if (_municipalityId != null) {
+        for (final m in municipalities) {
+          if (m is Map && m['id'] == _municipalityId) {
+            _initialCenterLat = (m['centerLat'] as num?)?.toDouble();
+            _initialCenterLng = (m['centerLng'] as num?)?.toDouble();
+            break;
+          }
+        }
+      }
+
       setState(() {
         _municipalities = municipalities;
-        _municipalityId ??=
-            municipalities.isNotEmpty ? municipalities.first['id'] as String : null;
         _isLoading = false;
       });
     } catch (e) {
@@ -128,9 +148,12 @@ class _DriverApplicationScreenState
   }
 
   Future<void> _pickDocument(_DocumentSlot slot) async {
+    final extensions = slot.imagesOnly
+        ? ['jpg', 'jpeg', 'png', 'webp']
+        : ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+      allowedExtensions: extensions,
     );
     if (files.isEmpty || files.first.path == null || !mounted) return;
 
@@ -161,6 +184,13 @@ class _DriverApplicationScreenState
 
   bool _validateForm() {
     if (!_formKey.currentState!.validate()) return false;
+    if (_municipalityId == null) {
+      setState(() {
+        _error =
+            'Point the map pin inside a service municipality to continue';
+      });
+      return false;
+    }
     for (final slot in _documents) {
       if (slot.isRequired && (slot.uploadedUrl == null)) {
         setState(() => _error = 'Please upload ${slot.label}');
@@ -251,7 +281,13 @@ class _DriverApplicationScreenState
                         controller: _modelController,
                       ),
                       const SizedBox(height: 16),
-                      _buildMunicipalityDropdown(),
+                      ServiceAreaMapPicker(
+                        municipalities: _municipalities,
+                        initialCenterLat: _initialCenterLat,
+                        initialCenterLng: _initialCenterLng,
+                        onChanged: (match) =>
+                            setState(() => _municipalityId = match?.id),
+                      ),
                       const SizedBox(height: 24),
                       ..._documents.map(_buildDocumentTile),
                       if (_error != null) ...[
@@ -331,28 +367,6 @@ class _DriverApplicationScreenState
     );
   }
 
-  Widget _buildMunicipalityDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: _municipalityId,
-      decoration: InputDecoration(
-        labelText: 'Service Municipality',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      items: [
-        for (final m in _municipalities)
-          DropdownMenuItem(
-            value: m['id'] as String,
-            child: Text(m['name'] as String),
-          ),
-      ],
-      validator: (value) => InputValidators.required(
-          value, 'Select your service municipality'),
-      onChanged: (value) => setState(() => _municipalityId = value),
-    );
-  }
-
   Widget _buildDocumentTile(_DocumentSlot slot) {
     final hasFile = slot.localPreview != null;
     final isImage = hasFile &&
@@ -413,7 +427,9 @@ class _DriverApplicationScreenState
                       ? 'Uploading\u2026'
                       : slot.uploadedUrl != null
                           ? 'Uploaded'
-                          : 'JPG, PNG, WEBP or PDF \u00b7 max 5 MB',
+                          : slot.imagesOnly
+                              ? 'JPG, PNG or WEBP \u00b7 max 5 MB'
+                              : 'JPG, PNG, WEBP or PDF \u00b7 max 5 MB',
                   style: TextStyle(
                     fontSize: 11,
                     color: slot.uploadedUrl != null

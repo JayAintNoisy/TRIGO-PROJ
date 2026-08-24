@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,11 @@ void main() {
     dotenv.testLoad(fileInput: 'API_BASE_URL=http://localhost:4000/api\n');
     // The router redirect reads persisted state during navigation
     SharedPreferences.setMockInitialValues({});
+    // The boot gate probes connectivity; answer immediately as online
+    const connectivity =
+        MethodChannel('dev.fluttercommunity.plus/connectivity');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(connectivity, (call) async => ['wifi']);
 
     await tester.pumpWidget(
       const ProviderScope(

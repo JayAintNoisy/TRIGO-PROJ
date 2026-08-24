@@ -107,7 +107,12 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     ),
                   )
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: EdgeInsets.fromLTRB(
+                      20.0,
+                      20.0,
+                      20.0,
+                      MediaQuery.of(context).padding.bottom + 80,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

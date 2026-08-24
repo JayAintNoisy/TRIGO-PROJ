@@ -20,6 +20,7 @@ import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/support/presentation/screens/help_support_screen.dart';
+import '../../shared/widgets/animated_branch_container.dart';
 import '../../shared/widgets/app_scaffold.dart';
 
 final authRedirectNotifier = ValueNotifier<AuthState?>(null);
@@ -38,8 +39,6 @@ final _driverBlockedRoutes = [
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 // A driver whose application is not yet approved (pending/reviewing/rejected/
 // suspended) or who registered as a driver but never submitted details.
@@ -111,6 +110,12 @@ final appRouter = GoRouter(
         rideId: state.uri.queryParameters['rideId'],
         pickup: state.uri.queryParameters['pickup'],
         dropoff: state.uri.queryParameters['dropoff'],
+        pickupLat: double.tryParse(state.uri.queryParameters['pickupLat'] ?? ''),
+        pickupLng: double.tryParse(state.uri.queryParameters['pickupLng'] ?? ''),
+        dropoffLat: double.tryParse(state.uri.queryParameters['dropoffLat'] ?? ''),
+        dropoffLng: double.tryParse(state.uri.queryParameters['dropoffLng'] ?? ''),
+        municipalityId: state.uri.queryParameters['municipalityId'],
+        passengers: int.tryParse(state.uri.queryParameters['passengers'] ?? '1'),
       ),
     ),
     GoRoute(
@@ -151,25 +156,42 @@ final appRouter = GoRouter(
       path: '/support',
       builder: (context, state) => const HelpSupportScreen(),
     ),
-    ShellRoute(
-      navigatorKey: _shellNavigatorKey,
-      builder: (context, state, child) => AppScaffold(child: child),
-      routes: [
-        GoRoute(
-          path: '/home',
-          builder: (context, state) => const HomeSwitcher(),
+    StatefulShellRoute(
+      builder: (context, state, navigationShell) =>
+          AppScaffold(navigationShell: navigationShell),
+      navigatorContainerBuilder: (context, navigationShell, children) =>
+          AnimatedBranchContainer(
+        currentIndex: navigationShell.currentIndex,
+        children: children,
+      ),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => const HomeSwitcher(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/history',
-          builder: (context, state) => const HistoryScreen(),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/history',
+              builder: (context, state) => const HistoryScreen(),
+            ),
+            GoRoute(
+              path: '/driver/earnings',
+              builder: (context, state) => const EarningsScreen(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/driver/earnings',
-          builder: (context, state) => const EarningsScreen(),
-        ),
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => const ProfileScreen(),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
         ),
       ],
     ),

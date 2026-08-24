@@ -328,7 +328,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   : RefreshIndicator(
                       onRefresh: _loadRides,
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          16,
+                          16,
+                          MediaQuery.of(context).padding.bottom + 80,
+                        ),
                         itemCount: _rides.length,
                         itemBuilder: (context, index) {
                           final ride = _rides[index];

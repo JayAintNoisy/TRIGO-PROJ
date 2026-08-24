@@ -62,7 +62,7 @@ const navItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'Applications', path: '/applications', icon: ClipboardList },
   { name: 'Drivers', path: '/drivers', icon: Bike },
-  { name: 'Passengers', path: '/users', icon: Users },
+  { name: 'Users', path: '/users', icon: Users },
   { name: 'Rides', path: '/rides', icon: Route },
   { name: 'Municipalities', path: '/municipalities', icon: MapPin },
   { name: 'Live Tracking', path: '/tracking', icon: Navigation },

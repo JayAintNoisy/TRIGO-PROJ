@@ -14,6 +14,7 @@ class IncomingRequestModal extends StatefulWidget {
       BuildContext context, dynamic ride, Future<void> Function() onAccept) {
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isDismissible: false,
       enableDrag: false,
       isScrollControlled: true,
@@ -68,9 +69,15 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
         (ride['distanceKm'] ?? 0).toDouble().toStringAsFixed(1);
     final pickup = ride['pickupAddress'] ?? 'Pickup';
     final dropoff = ride['dropoffAddress'] ?? 'Drop-off';
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        bottomPadding > 0 ? bottomPadding + 12 : 20,
+      ),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
