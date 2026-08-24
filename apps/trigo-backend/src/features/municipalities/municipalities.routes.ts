@@ -18,6 +18,7 @@ router.get('/:id', controller.getById);
 router.post('/', authenticate, authorize(USER_ROLE.ADMIN), validate(createMunicipalitySchema), controller.create);
 router.patch('/:id/fare-config', authenticate, authorize(USER_ROLE.ADMIN), validate(updateFareConfigSchema), controller.updateFareConfig);
 router.put('/:id', authenticate, authorize(USER_ROLE.ADMIN), validate(updateMunicipalitySchema), controller.update);
+router.patch('/:id', authenticate, authorize(USER_ROLE.ADMIN), validate(updateMunicipalitySchema), controller.update);
 router.delete('/:id', authenticate, authorize(USER_ROLE.ADMIN), controller.remove);
 
 export default router;

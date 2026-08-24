@@ -13,6 +13,7 @@ export const migrate = async () => {
       last_name VARCHAR(255) NOT NULL,
       phone VARCHAR(20) NOT NULL,
       role VARCHAR(20) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')),
+      driver_intent BOOLEAN NOT NULL DEFAULT false,
       profile_photo_url TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
@@ -31,6 +32,7 @@ export const migrate = async () => {
       min_fare DECIMAL(10, 2) DEFAULT 20.00,
       night_surcharge DECIMAL(10, 2) DEFAULT 0,
       max_passengers INTEGER DEFAULT 4,
+      boundary_geojson JSONB,
       is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
@@ -141,10 +143,12 @@ export const migrate = async () => {
   // Idempotent alterations for pre-existing databases
   const alterSql = `
     ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancellation_fee DECIMAL(10, 2) DEFAULT 0;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_intent BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS exclusive_multiplier DECIMAL(4, 2) DEFAULT 1.50;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS min_fare DECIMAL(10, 2) DEFAULT 20.00;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS night_surcharge DECIMAL(10, 2) DEFAULT 0;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS max_passengers INTEGER DEFAULT 4;
+    ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS boundary_geojson JSONB;
     CREATE UNIQUE INDEX IF NOT EXISTS ride_ratings_ride_unique ON ride_ratings (ride_id);
     CREATE INDEX IF NOT EXISTS ride_tracking_ride_idx ON ride_tracking (ride_id);
     DO $$

@@ -30,14 +30,15 @@ export class MunicipalitiesRepository {
       minFare: 20,
       nightSurcharge: 0,
       maxPassengers: 4,
+      boundaryGeojson: input.boundaryGeojson || null,
       isActive: true,
       createdAt: now,
       updatedAt: now,
     };
 
     await pool.query(
-      `INSERT INTO municipalities (id, name, province, center_lat, center_lng, radius_km, base_fare, per_km_rate, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      `INSERT INTO municipalities (id, name, province, center_lat, center_lng, radius_km, base_fare, per_km_rate, boundary_geojson, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         entity.id,
         entity.name,
@@ -47,6 +48,7 @@ export class MunicipalitiesRepository {
         entity.radiusKm,
         entity.baseFare,
         entity.perKmRate,
+        entity.boundaryGeojson ? JSON.stringify(entity.boundaryGeojson) : null,
         entity.isActive,
         entity.createdAt,
         entity.updatedAt,
@@ -97,13 +99,19 @@ export class MunicipalitiesRepository {
       radiusKm: 'radius_km',
       baseFare: 'base_fare',
       perKmRate: 'per_km_rate',
+      boundaryGeojson: 'boundary_geojson',
       isActive: 'is_active',
     };
 
     for (const [key, column] of Object.entries(fieldMap)) {
       if (input[key as keyof UpdateMunicipalityInput] !== undefined) {
         updates.push(`${column} = $${idx++}`);
-        params.push(input[key as keyof UpdateMunicipalityInput]);
+        const val = input[key as keyof UpdateMunicipalityInput];
+        if (key === 'boundaryGeojson' && val !== null && val !== undefined) {
+          params.push(typeof val === 'string' ? val : JSON.stringify(val));
+        } else {
+          params.push(val);
+        }
       }
     }
 
@@ -123,6 +131,19 @@ export class MunicipalitiesRepository {
   }
 
   private mapRowToEntity(row: any): MunicipalityEntity {
+    let boundaryGeojson: any = null;
+    if (row.boundary_geojson) {
+      if (typeof row.boundary_geojson === 'string') {
+        try {
+          boundaryGeojson = JSON.parse(row.boundary_geojson);
+        } catch (_) {
+          boundaryGeojson = row.boundary_geojson;
+        }
+      } else {
+        boundaryGeojson = row.boundary_geojson;
+      }
+    }
+
     return {
       id: row.id,
       name: row.name,
@@ -136,6 +157,7 @@ export class MunicipalitiesRepository {
       minFare: row.min_fare !== null && row.min_fare !== undefined ? parseFloat(row.min_fare) : 20,
       nightSurcharge: row.night_surcharge !== null && row.night_surcharge !== undefined ? parseFloat(row.night_surcharge) : 0,
       maxPassengers: row.max_passengers ? parseInt(row.max_passengers, 10) : 4,
+      boundaryGeojson,
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),

@@ -29,7 +29,7 @@ export const seedDatabase = async () => {
 
     INSERT INTO driver_profiles (id, user_id, municipality_id, license_number, tricycle_plate_number, tricycle_model, application_status, is_online, current_lat, current_lng)
     VALUES 
-      ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'L-12345678', '123-ABC', 'Kawasaki Barako', 'approved', true, 10.3157, 123.9575)
+      ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'L-12345678', '123-ABC', 'Kawasaki Barako', 'approved', false, 10.3157, 123.9575)
     ON CONFLICT (id) DO NOTHING;
   `;
 

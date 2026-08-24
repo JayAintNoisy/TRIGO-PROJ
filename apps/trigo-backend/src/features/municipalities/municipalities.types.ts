@@ -11,6 +11,7 @@ export interface MunicipalityEntity {
   minFare: number;
   nightSurcharge: number;
   maxPassengers: number;
+  boundaryGeojson?: any;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -24,6 +25,7 @@ export interface CreateMunicipalityInput {
   radiusKm: number;
   baseFare?: number;
   perKmRate?: number;
+  boundaryGeojson?: any;
 }
 
 export interface UpdateFareConfigInput {
@@ -43,5 +45,6 @@ export interface UpdateMunicipalityInput {
   radiusKm?: number;
   baseFare?: number;
   perKmRate?: number;
+  boundaryGeojson?: any;
   isActive?: boolean;
 }

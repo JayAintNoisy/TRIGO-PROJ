@@ -9,6 +9,7 @@ export const createMunicipalitySchema = z.object({
     radiusKm: z.number().positive('Radius must be positive'),
     baseFare: z.number().nonnegative().optional().default(30.0),
     perKmRate: z.number().nonnegative().optional().default(10.0),
+    boundaryGeojson: z.any().optional(),
   }),
 });
 
@@ -32,6 +33,7 @@ export const updateMunicipalitySchema = z.object({
     radiusKm: z.number().positive('Radius must be positive').optional(),
     baseFare: z.number().nonnegative('Base fare cannot be negative').optional(),
     perKmRate: z.number().nonnegative('Per km rate cannot be negative').optional(),
+    boundaryGeojson: z.any().optional(),
     isActive: z.boolean().optional(),
   }).refine((data) => Object.keys(data).length > 0, { message: 'At least one field must be provided' }),
 });
