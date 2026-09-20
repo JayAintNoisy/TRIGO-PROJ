@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/services/geocoding_service.dart';
+import '../../../../shared/utils/geo_bounds.dart';
 import '../../../../shared/utils/input_validators.dart';
 import 'address_search_input.dart';
 
@@ -21,6 +22,8 @@ class CustomerBookingSheet extends StatelessWidget {
     this.bottomInset = 0,
     this.proximityLat,
     this.proximityLng,
+    this.pickupSearchBounds,
+    this.dropoffSearchBounds,
     this.onPickupSelected,
     this.onDropoffSelected,
     this.onToggleExpand,
@@ -41,6 +44,14 @@ class CustomerBookingSheet extends StatelessWidget {
   final double bottomInset;
   final double? proximityLat;
   final double? proximityLng;
+
+  /// Fences the pickup search to the service area so in-area landmarks surface
+  /// even without a GPS fix.
+  final GeoBounds? pickupSearchBounds;
+
+  /// Fences the drop-off search to the selected pickup's municipality, matching
+  /// the "destination must be inside the pickup's area" booking rule.
+  final GeoBounds? dropoffSearchBounds;
   final ValueChanged<LocationSearchResult>? onPickupSelected;
   final ValueChanged<LocationSearchResult>? onDropoffSelected;
   final VoidCallback? onToggleExpand;
@@ -140,6 +151,7 @@ class CustomerBookingSheet extends StatelessWidget {
                         accentColor: const Color(0xFF10B981),
                         proximityLat: proximityLat,
                         proximityLng: proximityLng,
+                        searchBounds: pickupSearchBounds,
                         onLocationSelected: onPickupSelected,
                         onSelectFromMap: onPickPickupOnMap,
                         validator: (value) => InputValidators.required(
@@ -154,6 +166,7 @@ class CustomerBookingSheet extends StatelessWidget {
                         accentColor: const Color(0xFFEF4444),
                         proximityLat: proximityLat,
                         proximityLng: proximityLng,
+                        searchBounds: dropoffSearchBounds,
                         onLocationSelected: onDropoffSelected,
                         onSelectFromMap: onPickDropoffOnMap,
                         validator: (value) => InputValidators.required(

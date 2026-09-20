@@ -7,6 +7,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 import '../../../../shared/services/geocoding_service.dart';
 import '../../../../shared/utils/app_snackbar.dart';
+import '../../../../shared/utils/geo_bounds.dart';
 import '../../../../shared/utils/municipality_locator.dart';
 import '../widgets/customer_booking_sheet.dart';
 import '../widgets/customer_map_view.dart';
@@ -183,6 +184,43 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
     return null;
   }
 
+  /// Bounding box of one service area: its drawn boundary when available,
+  /// otherwise its circular fallback radius.
+  GeoBounds? _municipalityBounds(MunicipalityMatch match) {
+    return boundsFromPolygonRings(getMunicipalityBoundaryRings(match));
+  }
+
+  /// Bounding box covering every configured service area. Used to fence pickup
+  /// searches so results stay inside the coverage zone — and stay useful even
+  /// when there is no GPS fix.
+  GeoBounds? _serviceAreaBounds() {
+    GeoBounds? bounds;
+    for (final municipality in _municipalities) {
+      if (municipality is! Map) continue;
+      final match = matchFromMunicipalityMap(municipality);
+      if (match == null) continue;
+      final municipalityBounds = _municipalityBounds(match);
+      if (municipalityBounds == null) continue;
+      bounds = bounds == null
+          ? municipalityBounds
+          : bounds.expandToInclude(municipalityBounds);
+    }
+    return bounds;
+  }
+
+  /// Point searches are biased towards: the chosen pickup, else the device
+  /// location, else the first configured service area. Never null while a
+  /// service area is loaded, so ranking stays distance-aware without GPS.
+  double? get _searchBiasLat =>
+      _selectedPickupLocation?.latitude ??
+      _currentPosition?.latitude ??
+      firstMunicipality(_municipalities)?.centerLat;
+
+  double? get _searchBiasLng =>
+      _selectedPickupLocation?.longitude ??
+      _currentPosition?.longitude ??
+      firstMunicipality(_municipalities)?.centerLng;
+
   void _confirmPickedLocation() {
     final lat = _pickerLat;
     final lng = _pickerLng;
@@ -341,6 +379,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final isPicking = _pickingTarget != MapPickingTarget.none;
 
+    // Search fencing: pickups anywhere in the coverage zone; drop-offs limited
+    // to the pickup's municipality, matching the booking validation below.
+    final pickupSearchBounds = _serviceAreaBounds();
+    final pickupMunicipality = _getCurrentPickupMunicipality();
+    final dropoffSearchBounds = pickupMunicipality != null
+        ? _municipalityBounds(pickupMunicipality)
+        : pickupSearchBounds;
+
     final peekSize =
         ((110 + bottomInset) / screenHeight).clamp(0.12, 0.26).toDouble();
     final initialSize =
@@ -453,8 +499,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
                   bookingFormKey: _bookingFormKey,
                   passengerCount: _passengerCount,
                   isRequesting: _isRequesting,
-                  proximityLat: _currentPosition?.latitude,
-                  proximityLng: _currentPosition?.longitude,
+                  proximityLat: _searchBiasLat,
+                  proximityLng: _searchBiasLng,
+                  pickupSearchBounds: pickupSearchBounds,
+                  dropoffSearchBounds: dropoffSearchBounds,
                   onPickupSelected: (result) {
                     final match = locateMunicipality(
                         result.latitude, result.longitude, _municipalities);
