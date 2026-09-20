@@ -71,7 +71,7 @@ class _AddressSearchInputState extends State<AddressSearchInput> {
 
   void _onTextChanged(String text) {
     _debounceTimer?.cancel();
-    if (text.trim().length < 2) {
+    if (text.trim().length < 3) {
       setState(() {
         _suggestions = [];
         _isSearching = false;
@@ -80,7 +80,7 @@ class _AddressSearchInputState extends State<AddressSearchInput> {
       return;
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+    _debounceTimer = Timer(const Duration(milliseconds: 450), () async {
       if (!mounted) return;
       setState(() => _isSearching = true);
       _showOverlay();

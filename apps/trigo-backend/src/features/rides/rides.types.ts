@@ -29,6 +29,11 @@ export interface RideEntity {
   driverPhone?: string;
   tricyclePlateNumber?: string;
   municipalityName?: string;
+  /// Last broadcast position of the assigned driver, joined from
+  /// driver_profiles. Null until a driver is assigned or before their first
+  /// GPS broadcast. Lets the passenger track the driver live.
+  driverLat?: number | null;
+  driverLng?: number | null;
 }
 
 export interface CreateRideInput {

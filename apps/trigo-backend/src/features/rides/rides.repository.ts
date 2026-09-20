@@ -10,7 +10,9 @@ const RIDE_SELECT = `
          CONCAT_WS(' ', du.first_name, du.last_name) AS driver_name,
          du.phone AS driver_phone,
          m.name   AS municipality_name,
-         dp.tricycle_plate_number AS tricycle_plate_number
+         dp.tricycle_plate_number AS tricycle_plate_number,
+         dp.current_lat AS driver_lat,
+         dp.current_lng AS driver_lng
   FROM rides r
   LEFT JOIN users cu ON cu.id = r.customer_id
   LEFT JOIN users du ON du.id = r.driver_id
@@ -142,6 +144,12 @@ export class RidesRepository {
       driverPhone: row.driver_phone || undefined,
       tricyclePlateNumber: row.tricycle_plate_number || undefined,
       municipalityName: row.municipality_name || undefined,
+      driverLat: row.driver_lat !== null && row.driver_lat !== undefined
+        ? parseFloat(row.driver_lat)
+        : null,
+      driverLng: row.driver_lng !== null && row.driver_lng !== undefined
+        ? parseFloat(row.driver_lng)
+        : null,
     };
   }
 }

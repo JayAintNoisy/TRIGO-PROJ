@@ -162,7 +162,7 @@ class CustomerMapViewState extends State<CustomerMapView> {
   void _onCameraChanged(CameraChangedEventData event) {
     if (!widget.isPickingLocation) return;
     _cameraDebounceTimer?.cancel();
-    _cameraDebounceTimer = Timer(const Duration(milliseconds: 350), () {
+    _cameraDebounceTimer = Timer(const Duration(milliseconds: 550), () {
       _reportCurrentCenter();
     });
   }
@@ -176,9 +176,9 @@ class CustomerMapViewState extends State<CustomerMapView> {
       final lat = center.coordinates.lat.toDouble();
       final lng = center.coordinates.lng.toDouble();
 
-      // Only notify if position moved more than ~5 meters
-      if ((lat - _lastReportedLat).abs() > 0.00005 ||
-          (lng - _lastReportedLng).abs() > 0.00005) {
+      // Only notify if position moved more than ~20 meters
+      if ((lat - _lastReportedLat).abs() > 0.00015 ||
+          (lng - _lastReportedLng).abs() > 0.00015) {
         _lastReportedLat = lat;
         _lastReportedLng = lng;
         widget.onCameraCenterChanged?.call(lat, lng);
@@ -187,7 +187,8 @@ class CustomerMapViewState extends State<CustomerMapView> {
   }
 
   /// Programmatically moves camera to coordinates
-  Future<void> flyToLocation(double lat, double lng, {double zoom = 15.5}) async {
+  Future<void> flyToLocation(double lat, double lng,
+      {double zoom = 15.5}) async {
     final controller = _controller;
     if (controller != null) {
       _lastReportedLat = lat;

@@ -9,6 +9,7 @@ class MapRecenterButton extends StatelessWidget {
     this.size = 42,
     this.iconSize = 22,
     this.color = const Color(0xFF2563EB),
+    this.icon = Icons.my_location,
   });
 
   final VoidCallback? onPressed;
@@ -16,6 +17,10 @@ class MapRecenterButton extends StatelessWidget {
   final double size;
   final double iconSize;
   final Color color;
+
+  /// Glyph shown when not loading. Defaults to the GPS crosshair; pass
+  /// [Icons.zoom_out_map] for a "fit all points" action.
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +46,7 @@ class MapRecenterButton extends StatelessWidget {
                     ),
                   )
                 : Icon(
-                    Icons.my_location,
+                    icon,
                     size: iconSize,
                     color: color,
                   ),

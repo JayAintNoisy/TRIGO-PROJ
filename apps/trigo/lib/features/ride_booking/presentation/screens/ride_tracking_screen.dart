@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../ride_booking/data/rides_repository.dart';
@@ -16,16 +18,28 @@ class RideTrackingScreen extends ConsumerStatefulWidget {
   const RideTrackingScreen({super.key, this.rideId});
 
   @override
-  ConsumerState<RideTrackingScreen> createState() =>
-      _RideTrackingScreenState();
+  ConsumerState<RideTrackingScreen> createState() => _RideTrackingScreenState();
 }
 
 class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   final _repository = RidesRepository();
+  final _driversRepository = DriversRepository();
   dynamic _ride;
   bool _isLoading = true;
   bool _isActioning = false;
   Timer? _pollTimer;
+  Timer? _locationTimer;
+
+  /// Distance-filtered position updates for the driver.
+  StreamSubscription<geo.Position>? _positionSubscription;
+
+  /// The driver's own live GPS fix, used as the map's start point for the
+  /// "heading to passenger" leg.
+  geo.Position? _ownPosition;
+
+  /// Measured height of the bottom sheet, so the map's floating controls can
+  /// sit just above it instead of behind it.
+  double _sheetHeight = 0;
 
   String? get _effectiveRideId =>
       (widget.rideId == null || widget.rideId!.isEmpty) ? null : widget.rideId;
@@ -39,6 +53,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       // and status transitions update in real time
       _pollTimer =
           Timer.periodic(const Duration(seconds: 4), (_) => _loadRide());
+      _startOwnLocationUpdates();
     } else {
       setState(() => _isLoading = false);
     }
@@ -47,7 +62,98 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _locationTimer?.cancel();
+    _positionSubscription?.cancel();
     super.dispose();
+  }
+
+  /// How far the driver must move before a new position is broadcast.
+  ///
+  /// Kept in step with the map's polyline re-route threshold
+  /// (`routeRefreshDistanceKm`) so the drawn line and the uploaded position
+  /// advance together; a mismatch would leave one visibly behind the other.
+  static const int _broadcastDistanceFilterMeters = 50;
+
+  /// Slow safety net so a parked driver's position does not go stale, since a
+  /// pure distance filter emits nothing while they are stationary.
+  static const Duration _stationaryHeartbeat = Duration(seconds: 30);
+
+  /// Publishes this device's position for the driver so the map can draw the
+  /// driver-to-passenger leg, and so the passenger's poll of the ride payload
+  /// sees a fresh driver location. Harmless for passengers.
+  void _startOwnLocationUpdates() {
+    _refreshOwnPosition();
+
+    // Movement-driven updates: the platform only emits once the driver has
+    // actually travelled the filter distance, so a moving vehicle updates
+    // promptly instead of waiting for the next timer tick.
+    _positionSubscription?.cancel();
+    _positionSubscription = geo.Geolocator.getPositionStream(
+      locationSettings: const geo.LocationSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: _broadcastDistanceFilterMeters,
+      ),
+    ).listen(
+      _handlePosition,
+      onError: (_) {
+        // Stream errors are non-fatal; the heartbeat keeps things ticking.
+      },
+    );
+
+    _locationTimer =
+        Timer.periodic(_stationaryHeartbeat, (_) => _refreshOwnPosition());
+  }
+
+  void _handlePosition(geo.Position pos) {
+    if (!mounted) return;
+    setState(() => _ownPosition = pos);
+    _broadcastPosition(pos);
+  }
+
+  Future<void> _refreshOwnPosition() async {
+    try {
+      var permission = await geo.Geolocator.checkPermission();
+      if (permission == geo.LocationPermission.denied) {
+        permission = await geo.Geolocator.requestPermission();
+      }
+      if (permission == geo.LocationPermission.denied ||
+          permission == geo.LocationPermission.deniedForever ||
+          !await geo.Geolocator.isLocationServiceEnabled()) {
+        return;
+      }
+      final pos = await geo.Geolocator.getCurrentPosition(
+        desiredAccuracy: geo.LocationAccuracy.high,
+      ).timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      setState(() => _ownPosition = pos);
+
+      // Broadcast so the passenger's 4s poll of the ride payload receives an
+      // up-to-date driver position. The driver Home screen only broadcasts
+      // while the driver sits on Home, so without this the passenger's driver
+      // marker goes stale for the whole trip.
+      await _broadcastPosition(pos);
+    } catch (_) {
+      // A missing fix is non-fatal: the map falls back to ride coordinates.
+    }
+  }
+
+  /// Sends the current fix to the tracking endpoint, tagged with the ride so
+  /// the backend can also record the trip's path.
+  Future<void> _broadcastPosition(geo.Position pos) async {
+    final authState = ref.read(authProvider);
+    if (authState.activeMode != AppUserMode.driver) return;
+    final rideId = _effectiveRideId;
+    if (rideId == null) return;
+    try {
+      await _driversRepository.broadcastLocation(
+        lat: pos.latitude,
+        lng: pos.longitude,
+        accuracy: pos.accuracy,
+        rideId: rideId,
+      );
+    } catch (_) {
+      // Broadcast failures are non-fatal; retried on the next tick.
+    }
   }
 
   Future<void> _loadRide() async {
@@ -81,8 +187,8 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Cancel this ride?',
             style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text(
-            'Are you sure you want to cancel your ride request?'),
+        content:
+            const Text('Are you sure you want to cancel your ride request?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -193,7 +299,8 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               const SizedBox(height: 18),
               Icon(
                 isCall ? Icons.phone_forwarded : Icons.message,
-                color: isCall ? const Color(0xFF2563EB) : const Color(0xFF10B981),
+                color:
+                    isCall ? const Color(0xFF2563EB) : const Color(0xFF10B981),
                 size: 36,
               ),
               const SizedBox(height: 10),
@@ -282,8 +389,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
 
     final passengerName =
         _ride?['customerName'] ?? _ride?['userName'] ?? 'Passenger';
-    final passengerPhone =
-        _ride?['customerPhone'] ?? _ride?['userPhone'] ?? '';
+    final passengerPhone = _ride?['customerPhone'] ?? _ride?['userPhone'] ?? '';
     final driverName = _ride?['driverName'] ?? 'Waiting for driver...';
     final driverPhone = _ride?['driverPhone'] ?? '';
     final plate = _ride?['tricyclePlateNumber'] ?? 'ABC-1234';
@@ -320,10 +426,20 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               pickupLng: pLng,
               dropoffLat: dLat,
               dropoffLng: dLng,
-              driverLat: drvLat,
-              driverLng: drvLng,
+              // Prefer the live GPS fix for the driver's own device so their
+              // pin and the "to pickup" leg stay accurate even before the
+              // backend has a broadcast position. The passenger falls back to
+              // the driver coordinates carried on the ride payload.
+              driverLat: isDriver ? (_ownPosition?.latitude ?? drvLat) : drvLat,
+              driverLng:
+                  isDriver ? (_ownPosition?.longitude ?? drvLng) : drvLng,
               distanceKm: distanceKm,
-              bottomOffset: 340,
+              bottomOffset: _sheetHeight,
+              rideStatus: rideStatus,
+              // The viewer's own position, so the map opens centred on "where
+              // I am" rather than on the midpoint of every tracked point.
+              ownLat: _ownPosition?.latitude,
+              ownLng: _ownPosition?.longitude,
             ),
           ),
 
@@ -350,68 +466,113 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _isLoading
-                ? Container(
-                    padding: const EdgeInsets.all(40),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(28)),
-                    ),
-                    child: const Center(child: CircularProgressIndicator()),
-                  )
-                : isDriver
-                    ? DriverRideTrackingSheet(
-                        passengerName: passengerName,
-                        passengerCount:
-                            (_ride?['passengers'] as num?)?.toInt() ?? 1,
-                        pickupAddress: pickupAddress,
-                        dropoffAddress: dropoffAddress,
-                        fare: fareText,
-                        status: rideStatus,
-                        isActioning: _isActioning,
-                        onCall: () => _showContactModal(
-                          name: passengerName,
-                          phone: passengerPhone,
-                          isCall: true,
-                        ),
-                        onText: () => _showContactModal(
-                          name: passengerName,
-                          phone: passengerPhone,
-                          isCall: false,
-                        ),
-                        onStepAction: _handleDriverStepAction,
-                      )
-                    : PassengerRideTrackingSheet(
-                        statusText: statusHeadline,
-                        driverName: driverName,
-                        plateNumber: plate,
-                        fare: fareText,
-                        eta: etaText,
-                        status: rideStatus,
-                        isActioning: _isActioning,
-                        onCall: () => _showContactModal(
-                          name: driverName,
-                          phone: driverPhone,
-                          isCall: true,
-                        ),
-                        onText: () => _showContactModal(
-                          name: driverName,
-                          phone: driverPhone,
-                          isCall: false,
-                        ),
-                        onCompleteOrCancel: () {
-                          if (rideStatus == 'requested' ||
-                              rideStatus == 'accepted') {
-                            _cancelRide();
-                          } else {
-                            context.push('/ride/${widget.rideId}/rating');
-                          }
-                        },
+            child: _MeasureSize(
+              // Report the sheet's real height so the map controls can float
+              // above it rather than being hidden underneath.
+              onChange: (size) {
+                if (!mounted) return;
+                if ((size.height - _sheetHeight).abs() < 1) return;
+                setState(() => _sheetHeight = size.height);
+              },
+              child: _isLoading
+                  ? Container(
+                      padding: const EdgeInsets.all(40),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(28)),
                       ),
+                      child: const Center(child: CircularProgressIndicator()),
+                    )
+                  : isDriver
+                      ? DriverRideTrackingSheet(
+                          passengerName: passengerName,
+                          passengerCount:
+                              (_ride?['passengers'] as num?)?.toInt() ?? 1,
+                          pickupAddress: pickupAddress,
+                          dropoffAddress: dropoffAddress,
+                          fare: fareText,
+                          status: rideStatus,
+                          isActioning: _isActioning,
+                          onCall: () => _showContactModal(
+                            name: passengerName,
+                            phone: passengerPhone,
+                            isCall: true,
+                          ),
+                          onText: () => _showContactModal(
+                            name: passengerName,
+                            phone: passengerPhone,
+                            isCall: false,
+                          ),
+                          onStepAction: _handleDriverStepAction,
+                        )
+                      : PassengerRideTrackingSheet(
+                          statusText: statusHeadline,
+                          driverName: driverName,
+                          plateNumber: plate,
+                          fare: fareText,
+                          eta: etaText,
+                          status: rideStatus,
+                          isActioning: _isActioning,
+                          onCall: () => _showContactModal(
+                            name: driverName,
+                            phone: driverPhone,
+                            isCall: true,
+                          ),
+                          onText: () => _showContactModal(
+                            name: driverName,
+                            phone: driverPhone,
+                            isCall: false,
+                          ),
+                          onCompleteOrCancel: () {
+                            if (rideStatus == 'requested' ||
+                                rideStatus == 'accepted') {
+                              _cancelRide();
+                            } else {
+                              context.push('/ride/${widget.rideId}/rating');
+                            }
+                          },
+                        ),
+            ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// Reports its child's size after layout, so a sibling (the map's floating
+/// controls) can be offset by the real measured height instead of a guess.
+class _MeasureSize extends SingleChildRenderObjectWidget {
+  const _MeasureSize({required this.onChange, required super.child});
+
+  final void Function(Size size) onChange;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasureSize(onChange);
+
+  @override
+  void updateRenderObject(
+      BuildContext context, covariant _RenderMeasureSize renderObject) {
+    renderObject.onChange = onChange;
+  }
+}
+
+class _RenderMeasureSize extends RenderProxyBox {
+  _RenderMeasureSize(this.onChange);
+
+  void Function(Size size) onChange;
+
+  Size? _lastSize;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final newSize = size;
+    if (_lastSize == newSize) return;
+    _lastSize = newSize;
+    // Report after the frame so the listener can safely call setState.
+    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(newSize));
   }
 }

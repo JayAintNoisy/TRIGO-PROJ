@@ -6,6 +6,49 @@ import '../../../core/network/error_parser.dart';
 class RidesRepository {
   final Dio _dio = dioClient;
 
+  /// Ride statuses that mean a trip is still in flight. Anything not in this
+  /// set (completed, cancelled) is terminal and belongs in history only.
+  static const Set<String> activeStatuses = {
+    'requested',
+    'accepted',
+    'driver_arriving',
+    'in_progress',
+  };
+
+  static bool isActiveStatus(String? status) =>
+      status != null && activeStatuses.contains(status);
+
+  /// Ride statuses that mean a driver is actually committed to the trip.
+  ///
+  /// Deliberately excludes `requested`: that state means no driver has
+  /// accepted yet, so it is an open request rather than any driver's ride.
+  /// A driver resuming after a restart must never be dropped into one.
+  static const Set<String> driverAssignedStatuses = {
+    'accepted',
+    'driver_arriving',
+    'in_progress',
+  };
+
+  static bool isDriverAssignedStatus(String? status) =>
+      status != null && driverAssignedStatuses.contains(status);
+
+  /// Human-readable label for an in-flight ride, so the customer sees which
+  /// stage they are actually at rather than a generic "Active".
+  static String activeStatusLabel(String? status) {
+    switch (status) {
+      case 'requested':
+        return 'Finding a driver';
+      case 'accepted':
+        return 'Driver on the way';
+      case 'driver_arriving':
+        return 'Driver arriving';
+      case 'in_progress':
+        return 'Trip in progress';
+      default:
+        return 'Active';
+    }
+  }
+
   Future<dynamic> requestRide({
     required String municipalityId,
     required double pickupLat,
@@ -37,6 +80,36 @@ class RidesRepository {
       queryParameters: {if (status != null) 'status': status},
     );
     return (response.data['data'] as List?) ?? [];
+  }
+
+  /// The customer's current in-flight ride, or null when none exists.
+  ///
+  /// The list endpoint returns the user's rides newest-first, so the first
+  /// non-terminal entry is the one to resume. Used both to pin the active
+  /// card in History and to restore the ride after an app restart.
+  Future<dynamic> getActiveRide() async {
+    final rides = await getRides();
+    for (final ride in rides) {
+      if (ride is Map && isActiveStatus(ride['status']?.toString())) {
+        return ride;
+      }
+    }
+    return null;
+  }
+
+  /// The ride a driver is currently committed to, or null when they are idle.
+  ///
+  /// `/rides` is scoped to the caller, so for a driver this returns the rides
+  /// assigned to them. Only rides they have actually accepted count — an open
+  /// `requested` ride belongs to the customer, not to any driver.
+  Future<dynamic> getDriverAssignedRide() async {
+    final rides = await getRides();
+    for (final ride in rides) {
+      if (ride is Map && isDriverAssignedStatus(ride['status']?.toString())) {
+        return ride;
+      }
+    }
+    return null;
   }
 
   // Open ride requests in the driver's municipality
@@ -118,15 +191,21 @@ class DriversRepository {
 
   /// Publishes the driver's GPS fix so /drivers/online and the admin live
   /// tracking map reflect their position.
+  ///
+  /// Passing [rideId] also records the point against the trip, which is what
+  /// lets the passenger's poll of the ride payload pick up a fresh driver
+  /// position mid-trip.
   Future<void> broadcastLocation({
     required double lat,
     required double lng,
     double? accuracy,
+    String? rideId,
   }) async {
     await _dio.post(ApiEndpoints.trackingLocation, data: {
       'lat': lat,
       'lng': lng,
       if (accuracy != null) 'accuracy': accuracy,
+      if (rideId != null) 'rideId': rideId,
     });
   }
 
