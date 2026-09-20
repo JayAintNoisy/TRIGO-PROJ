@@ -90,6 +90,14 @@ let mapInstance: any = null;
 let vertexMarkers: any[] = [];
 let resizeObserver: ResizeObserver | null = null;
 
+// Snapshot of the last modelValue we emitted ourselves. The parent's v-model
+// writes it straight back, which would otherwise retrigger the watcher below:
+// initPointsFromProps() would see boundaryGeojson: null and reset the
+// in-progress points to [], wiping every click before 3 points are reached.
+// Skipping our own echo breaks that loop while genuine external changes
+// (different municipality, form reset) still sync through.
+const lastEmittedJson = ref<string | null>(null);
+
 // Initialize polygon points from prop
 const initPointsFromProps = () => {
   let geojson = props.modelValue?.boundaryGeojson;
@@ -177,21 +185,24 @@ const calculateCentroid = (points: [number, number][]): [number, number] => {
 };
 
 const emitUpdate = () => {
+  let next: BoundaryData;
   if (polygonPoints.value.length >= 3) {
     const [cLng, cLat] = calculateCentroid(polygonPoints.value);
     const geojson = createGeoJsonPolygon(polygonPoints.value);
-    emit('update:modelValue', {
+    next = {
       ...props.modelValue,
       centerLat: parseFloat(cLat.toFixed(6)),
       centerLng: parseFloat(cLng.toFixed(6)),
       boundaryGeojson: geojson,
-    });
+    };
   } else {
-    emit('update:modelValue', {
+    next = {
       ...props.modelValue,
       boundaryGeojson: null,
-    });
+    };
   }
+  lastEmittedJson.value = JSON.stringify(next);
+  emit('update:modelValue', next);
 };
 
 const undoLastPoint = () => {
@@ -345,7 +356,12 @@ const initMap = () => {
 
 watch(
   () => props.modelValue,
-  () => {
+  (incoming) => {
+    // Ignore the echo of our own emit (parent v-model write-back) so
+    // in-progress points are never wiped; anything else is a genuine
+    // external change and re-syncs from props.
+    if (incoming && JSON.stringify(incoming) === lastEmittedJson.value) return;
+    lastEmittedJson.value = null;
     initPointsFromProps();
     updateMapLayers();
     if (mapInstance && polygonPoints.value.length >= 3) {
