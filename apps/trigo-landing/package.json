@@ -1,0 +1,15 @@
+{
+  "name": "trigo-landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TriGo - Public landing page (vanilla HTML/CSS/JS, bundled with Vite)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}

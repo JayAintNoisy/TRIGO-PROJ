@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TriGo — Digital Tricycle Ride Booking for Municipalities</title>
+    <meta
+      name="description"
+      content="TriGo is a digital tricycle ride booking platform for municipalities: verified drivers, fare transparency, live GPS tracking, and cash or e-wallet payment in one app for passengers and drivers."
+    />
+    <meta name="theme-color" content="#2563EB" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TriGo" />
+    <meta property="og:title" content="TriGo — Digital Tricycle Ride Booking for Municipalities" />
+    <meta
+      property="og:description"
+      content="Book a tricycle inside your municipality: verified drivers, transparent fares, live GPS tracking, cash or e-wallet payment."
+    />
+    <meta property="og:image" content="screens/updated/landing-page.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Icon sprite: every glyph below is referenced with <use href="#i-..."> -->
+    <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="19" r="2" /><circle cx="19" cy="5" r="2" /><path d="M7 19h5a4 4 0 0 0 4-4V9a4 4 0 0 1 4-4" /></symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13l-3-3" /><path d="M20 16H7l3 3" /></symbol>
+      <symbol id="i-map" viewBox="0 0 24 24"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2-6-2Z" /><path d="M9 4v14" /><path d="M15 6v14" /></symbol>
+      <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9.5 8h5M9.5 12h5" /></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" /><circle cx="12" cy="10" r="2.5" /></symbol>
+      <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="11" r="2" /><path d="M14 10h4M14 13.5h4" /><path d="M6 16.5c.8-1.4 1.9-2 3-2s2.2.6 3 2" /></symbol>
+      <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1" /><rect x="3" y="7" width="18" height="12" rx="3" /><circle cx="16.5" cy="13" r="1.3" /></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.3-4.7A8 8 0 1 1 21 12Z" /><path d="M8.5 11h7M8.5 14.5h4" /></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 7 3v6c0 4.4-2.9 7.9-7 9-4.1-1.1-7-4.6-7-9V6l7-3Z" /><path d="m9 12 2 2 4-4" /></symbol>
+      <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V6a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v15" /><path d="M15 10h4a1 1 0 0 1 1 1v10" /><path d="M8 9h3M8 13h3M8 17h3M3 21h18" /></symbol>
+      <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="9" cy="7" rx="5" ry="2.5" /><path d="M4 7v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V7" /><ellipse cx="15" cy="15" rx="5" ry="2.5" /><path d="M10 15v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4" /></symbol>
+      <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M4 14 14 4l6 6L10 20l-6-6Z" /><path d="m8 10 2 2M11 7l2 2M5 13l2 2" /></symbol>
+      <symbol id="i-radius" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" /><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" /></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6" /><path d="M16 5.6a3 3 0 0 1 0 4.8M17.5 14.6c1.9.7 3 2.4 3 5.4" /></symbol>
+      <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.5 2.5 4.5-5" /></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 21h18" /><rect x="5" y="11" width="3" height="7" rx="1" /><rect x="10.5" y="7" width="3" height="11" rx="1" /><rect x="16" y="13" width="3" height="5" rx="1" /></symbol>
+      <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9" /><path d="M6.5 6.8a8 8 0 1 0 11 0" /></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4L4.2 9.7l5.4-.8L12 4Z" /></symbol>
+      <symbol id="i-android" viewBox="0 0 24 24"><path d="M6 9.5h12V16a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9.5Z" /><path d="m8 9.5-1.8-3M16 9.5l1.8-3" /><circle cx="10" cy="7.4" r=".7" /><circle cx="14" cy="7.4" r=".7" /><path d="M4 11.5v4M20 11.5v4" /></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></symbol>
+    </svg>
+
+    <header class="site-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="TriGo home">
+          <img src="icon.png" alt="" width="40" height="40" />
+          <span class="brand-name">TriGo</span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-nav-toggle
+        >
+          <span class="nav-toggle-bars" aria-hidden="true"></span>
+          <span class="sr-only">Toggle navigation</span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Main" data-nav>
+          <a href="#features">Features</a>
+          <a href="#statistics">Statistics</a>
+          <a href="#drivers">For drivers</a>
+          <a href="#faq">FAQ</a>
+          <a class="btn btn-primary btn-sm" href="#top" data-apk-link aria-disabled="true">Download APK</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ── Hero ─────────────────────────────────────────────────────── -->
+      <section class="hero" id="top">
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">
+              <svg class="icon" aria-hidden="true"><use href="#i-android" /></svg>
+              Android · Municipality-bound tricycle booking
+            </p>
+            <h1>Book a tricycle ride in minutes.</h1>
+            <p class="hero-lead">
+              TriGo connects passengers with verified tricycle drivers inside their own
+              municipality — with fare transparency, live GPS tracking, and payment in cash or
+              e-wallet. One app for passengers and drivers.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-light btn-lg" href="#top" data-apk-link aria-disabled="true">
+                <svg class="icon" aria-hidden="true"><use href="#i-download" /></svg>
+                Get the Android app
+              </a>
+              <a class="btn btn-ghost-light btn-lg" href="#features">See how it works</a>
+            </div>
+
+            <ul class="hero-trust">
+              <li class="chip chip-glass">
+                <span class="chip-dot" aria-hidden="true"></span>
+                <span data-release-display>1.0.0</span>
+              </li>
+              <li class="chip chip-glass" data-release-chip hidden>
+                <span data-release-label>demo</span> build
+              </li>
+              <li class="chip chip-glass">Cash &amp; e-wallet</li>
+              <li class="chip chip-glass" data-coverage-chip>Lapu-Lapu City &amp; Cordova, Cebu</li>
+            </ul>
+
+            <div class="hero-download-note">
+              <div class="notice notice-warn" data-apk-notice hidden>
+                <svg class="icon" aria-hidden="true"><use href="#i-info" /></svg>
+                <div>
+                  <strong>The public APK is not published yet.</strong>
+                  <p>
+                    Build one with <code>flutter build apk --release</code> (from
+                    <code>apps/trigo</code>), host the file, and set <code>VITE_APK_URL</code> in
+                    <code>apps/trigo-landing/.env</code> — the download buttons on this page then
+                    become live links.
+                  </p>
+                </div>
+              </div>
+
+              <p class="hero-note" data-apk-size-row hidden>
+                Download size: <strong data-apk-size></strong> · Requires Android 5.0+ (API 21)
+              </p>
+
+              <p class="hero-note" data-release-caveat hidden>
+                This is a pre-release build. It talks to the API configured at build time
+                (<code>API_BASE_URL</code>), so a demo or beta APK may need a locally running
+                backend.
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="phone phone-lg" data-screenshot>
+              <div class="phone-screen">
+                <img
+                  src="screens/updated/landing-page.png"
+                  alt="TriGo app landing screen with Passenger and Driver role options"
+                />
+                <p class="phone-placeholder" data-screenshot-fallback hidden>
+                  <svg class="icon" aria-hidden="true"><use href="#i-android" /></svg>
+                  Real screenshot coming soon
+                </p>
+              </div>
+            </div>
+            <div class="hero-glow" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="hero-wave" aria-hidden="true"></div>
+      </section>
+
+      <!-- ── Statistics ───────────────────────────────────────────────── -->
+      <section class="section" id="statistics">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow eyebrow-dark">
+              <svg class="icon" aria-hidden="true"><use href="#i-chart" /></svg>
+              Statistics
+            </p>
+            <h2>Real numbers, straight from the platform</h2>
+            <p class="section-lead">
+              Coverage figures are fetched live from the public TriGo API every time this page
+              loads, and fall back to the seeded municipal fare matrix whenever the backend is
+              unreachable.
+            </p>
+          </div>
+
+          <div class="status-bar">
+            <p class="status-pill is-pending" data-health-pill role="status" aria-live="polite">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span data-health-text>Checking the TriGo API…</span>
+            </p>
+            <button class="btn btn-ghost btn-sm" type="button" data-health-retry hidden>
+              Refresh
+            </button>
+            <p class="status-detail" data-health-detail></p>
+          </div>
+
+          <h3 class="group-title">
+            Live coverage <span class="tag" data-source-tag>loading…</span>
+          </h3>
+          <div class="grid grid-stats">
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-blue" aria-hidden="true"
+                ><svg class="icon"><use href="#i-building" /></svg
+              ></span>
+              <p class="stat-label">Municipalities covered</p>
+              <p class="stat-value" data-stat="municipalities">2</p>
+              <p class="stat-note" data-stat-note="municipalities">Lapu-Lapu City, Cordova</p>
+            </article>
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-teal" aria-hidden="true"
+                ><svg class="icon"><use href="#i-map" /></svg
+              ></span>
+              <p class="stat-label">Province served</p>
+              <p class="stat-value" data-stat="provinces">1</p>
+              <p class="stat-note" data-stat-note="provinces">Cebu</p>
+            </article>
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-green" aria-hidden="true"
+                ><svg class="icon"><use href="#i-coins" /></svg
+              ></span>
+              <p class="stat-label">Base fare</p>
+              <p class="stat-value" data-stat="baseFare">₱30</p>
+              <p class="stat-note" data-stat-note="baseFare">Lowest configured flag-down rate</p>
+            </article>
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-blue" aria-hidden="true"
+                ><svg class="icon"><use href="#i-ruler" /></svg
+              ></span>
+              <p class="stat-label">Per-kilometre rate</p>
+              <p class="stat-value" data-stat="perKmRate">₱10</p>
+              <p class="stat-note" data-stat-note="perKmRate">Distance component of the fare</p>
+            </article>
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-purple" aria-hidden="true"
+                ><svg class="icon"><use href="#i-radius" /></svg
+              ></span>
+              <p class="stat-label">Largest service radius</p>
+              <p class="stat-value" data-stat="radiusKm">15 km</p>
+              <p class="stat-note" data-stat-note="radiusKm">Jurisdiction enforced per booking</p>
+            </article>
+            <article class="card stat-card">
+              <span class="icon-tile icon-tile-orange" aria-hidden="true"
+                ><svg class="icon"><use href="#i-users" /></svg
+              ></span>
+              <p class="stat-label">Passengers per trike</p>
+              <p class="stat-value" data-stat="maxPassengers">4</p>
+              <p class="stat-note" data-stat-note="maxPassengers">Fare can be split per passenger</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Features ─────────────────────────────────────────────────── -->
+      <section class="section section-muted" id="features">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow eyebrow-dark">
+              <svg class="icon" aria-hidden="true"><use href="#i-check-circle" /></svg>
+              Features
+            </p>
+            <h2>Everything a municipal tricycle service needs</h2>
+            <p class="section-lead">
+              Passenger booking, driver dispatch, LGU fare control and safety monitoring — built
+              as one platform instead of four disconnected tools.
+            </p>
+          </div>
+
+          <div class="grid grid-features">
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-blue" aria-hidden="true"
+                ><svg class="icon"><use href="#i-route" /></svg
+              ></span>
+              <h3>Passenger booking</h3>
+              <p>
+                Set a drop-off, choose Standard Trike or Exclusive Ride, pick how many passengers
+                are splitting the fare, and send the request.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-orange" aria-hidden="true"
+                ><svg class="icon"><use href="#i-swap" /></svg
+              ></span>
+              <h3>One account, two roles</h3>
+              <p>
+                Switch between Passenger and Driver from the same profile — no second app, no
+                second login, no second device.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-teal" aria-hidden="true"
+                ><svg class="icon"><use href="#i-map" /></svg
+              ></span>
+              <h3>Municipality-bounded dispatch</h3>
+              <p>
+                Rides stay inside the municipality that issued the franchise: jurisdiction radius
+                and boundaries are checked on every request.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-green" aria-hidden="true"
+                ><svg class="icon"><use href="#i-receipt" /></svg
+              ></span>
+              <h3>Transparent fare matrix</h3>
+              <p>
+                Base fare, per-kilometre rate, minimum fare, night surcharge and the exclusive-ride
+                multiplier are configured per municipality by the LGU admin.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-blue" aria-hidden="true"
+                ><svg class="icon"><use href="#i-pin" /></svg
+              ></span>
+              <h3>Live GPS tracking</h3>
+              <p>
+                Drivers stream their position while online; passengers follow the trike, each route
+                leg and the ETA in real time.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-purple" aria-hidden="true"
+                ><svg class="icon"><use href="#i-id" /></svg
+              ></span>
+              <h3>Verified drivers only</h3>
+              <p>
+                Licence number, plate number, tricycle model and uploaded documents are reviewed
+                before a driver can be approved and go online.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-green" aria-hidden="true"
+                ><svg class="icon"><use href="#i-wallet" /></svg
+              ></span>
+              <h3>Cash and e-wallet payment</h3>
+              <p>
+                Settle in cash or through an e-wallet. Drivers publish their own payment QR codes,
+                so funds arrive directly.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-blue" aria-hidden="true"
+                ><svg class="icon"><use href="#i-chat" /></svg
+              ></span>
+              <h3>Chat and notifications</h3>
+              <p>
+                In-app messaging scoped to a single ride, plus notifications for every status
+                change from request to completion.
+              </p>
+            </article>
+            <article class="card feature-card">
+              <span class="icon-tile icon-tile-red" aria-hidden="true"
+                ><svg class="icon"><use href="#i-shield" /></svg
+              ></span>
+              <h3>Safety, ratings and receipts</h3>
+              <p>
+                SOS-oriented monitoring in the admin portal, two-way ratings after each trip, and a
+                full fare breakdown on every receipt.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── How it works ─────────────────────────────────────────────── -->
+      <section class="section" id="how">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow eyebrow-dark">
+              <svg class="icon" aria-hidden="true"><use href="#i-route" /></svg>
+              How it works
+            </p>
+            <h2>Four steps from request to receipt</h2>
+          </div>
+
+          <ol class="grid grid-steps">
+            <li class="card step-card">
+              <span class="step-number">1</span>
+              <h3>Set your destination</h3>
+              <p>Drop a pin, review the fare estimate, and confirm the request before booking.</p>
+            </li>
+            <li class="card step-card">
+              <span class="step-number">2</span>
+              <h3>Get matched</h3>
+              <p>Approved drivers inside your municipality receive the request and accept it.</p>
+            </li>
+            <li class="card step-card">
+              <span class="step-number">3</span>
+              <h3>Ride and track</h3>
+              <p>Follow the trike live, message or call your driver, and share the trip details.</p>
+            </li>
+            <li class="card step-card">
+              <span class="step-number">4</span>
+              <h3>Pay and rate</h3>
+              <p>Settle in cash or e-wallet, keep the receipt, and rate your driver.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ── Drivers ──────────────────────────────────────────────────── -->
+      <section class="section driver-band" id="drivers">
+        <div class="container driver-inner">
+          <div>
+            <p class="eyebrow">
+              <svg class="icon" aria-hidden="true"><use href="#i-wallet" /></svg>
+              For drivers
+            </p>
+            <h2>Drive with TriGo</h2>
+            <p class="section-lead">
+              Go online when you want to work, accept requests routed to your own municipality, and
+              keep track of every peso you earn.
+            </p>
+            <ul class="check-list">
+              <li>
+                <svg class="icon" aria-hidden="true"><use href="#i-chart" /></svg>
+                Daily, weekly and per-trip earnings in one screen
+              </li>
+              <li>
+                <svg class="icon" aria-hidden="true"><use href="#i-power" /></svg>
+                Online / offline toggle — you only receive requests while online
+              </li>
+              <li>
+                <svg class="icon" aria-hidden="true"><use href="#i-wallet" /></svg>
+                Cash and e-wallet trips separated, with cash-out guidance
+              </li>
+              <li>
+                <svg class="icon" aria-hidden="true"><use href="#i-star" /></svg>
+                Passenger ratings and a public trip history
+              </li>
+            </ul>
+            <a class="btn btn-light btn-lg" href="#top" data-apk-link aria-disabled="true">
+              <svg class="icon" aria-hidden="true"><use href="#i-download" /></svg>
+              Download the driver app
+            </a>
+          </div>
+
+          <div class="driver-visual">
+            <div class="phone" data-screenshot>
+              <div class="phone-screen">
+                <img
+                  src="screens/updated/driver-earnings.png"
+                  alt="Driver earnings dashboard with money earned today and a weekly chart"
+                  loading="lazy"
+                />
+                <p class="phone-placeholder" data-screenshot-fallback hidden>
+                  <svg class="icon" aria-hidden="true"><use href="#i-chart" /></svg>
+                  Real screenshot coming soon
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── FAQ ──────────────────────────────────────────────────────── -->
+      <section class="section" id="faq">
+        <div class="container container-narrow">
+          <div class="section-head">
+            <p class="eyebrow eyebrow-dark">
+              <svg class="icon" aria-hidden="true"><use href="#i-info" /></svg>
+              FAQ
+            </p>
+            <h2>Questions, answered</h2>
+          </div>
+
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>
+                Which areas does TriGo cover?
+                <svg class="icon faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              </summary>
+              <div class="faq-body">
+                <p>
+                  TriGo is deployed per municipality. The seeded coverage is
+                  <strong data-coverage-text>Lapu-Lapu City and Cordova, Cebu</strong>. An LGU can
+                  onboard another municipality by adding its centre, jurisdiction radius and fare
+                  matrix in the admin portal.
+                </p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>
+                How is the fare computed?
+                <svg class="icon faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              </summary>
+              <div class="faq-body">
+                <p>
+                  Each municipality stores its own base fare, per-kilometre rate, minimum fare,
+                  night surcharge, exclusive-ride multiplier and maximum passenger count. The
+                  estimate is shown before you confirm the booking, and the same breakdown appears
+                  on the receipt.
+                </p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>
+                What payment methods are supported?
+                <svg class="icon faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              </summary>
+              <div class="faq-body">
+                <p>
+                  Cash and e-wallet. Drivers enable the methods they accept and upload a payment QR
+                  code, so passengers can scan and transfer without leaving the app.
+                </p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>
+                How does a driver get approved?
+                <svg class="icon faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              </summary>
+              <div class="faq-body">
+                <p>
+                  Register in the app, submit your licence number, tricycle plate number, model and
+                  supporting documents, then wait for the LGU admin to approve the application.
+                  Only approved drivers can go online.
+                </p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>
+                What if something goes wrong during a trip?
+                <svg class="icon faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              </summary>
+              <div class="faq-body">
+                <p>
+                  Trips can be raised to the safety desk through the in-app support channel, and
+                  the admin portal surfaces SOS alerts, complaints and feedback for follow-up.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <a class="brand" href="#top">
+            <img src="icon.png" alt="" width="36" height="36" />
+            <span class="brand-name">TriGo</span>
+          </a>
+          <p>
+            Digital tricycle ride booking for municipalities — passengers, drivers and LGU
+            administrators on one platform.
+          </p>
+          <p class="footer-version">
+            <span data-release-display>1.0.0</span>
+            <span class="badge badge-warn" data-release-badge hidden>demo</span>
+          </p>
+        </div>
+
+        <nav class="footer-nav" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="#features">Features</a>
+            <a href="#statistics">Statistics</a>
+            <a href="#top" data-apk-link aria-disabled="true">Download APK</a>
+          </div>
+          <div>
+            <h3>Platform</h3>
+            <a href="#drivers">For drivers</a>
+            <a href="#how">How it works</a>
+            <a href="#faq">FAQ</a>
+          </div>
+        </nav>
+      </div>
+
+      <div class="container footer-bottom">
+        <p>
+          Coverage statistics are fetched live from the public TriGo API, with seeded values as a
+          fallback when the backend is offline.
+        </p>
+        <p>© <span data-year>2026</span> TriGo. Built for municipality-bounded tricycle services.</p>
+      </div>
+    </footer>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "TriGo",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Android",
+        "description": "Digital tricycle ride booking platform for municipalities, with verified drivers, transparent fares and live GPS tracking.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PHP" }
+      }
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
