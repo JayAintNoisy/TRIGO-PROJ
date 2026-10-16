@@ -5,6 +5,7 @@ class AppInput extends StatelessWidget {
   final String? hint;
   final TextEditingController? controller;
   final bool isPassword;
+  final bool? obscureText;
   final TextInputType keyboardType;
   final String? errorText;
   final String? Function(String?)? validator;
@@ -17,6 +18,7 @@ class AppInput extends StatelessWidget {
     this.hint,
     this.controller,
     this.isPassword = false,
+    this.obscureText,
     this.keyboardType = TextInputType.text,
     this.errorText,
     this.validator,
@@ -43,7 +45,7 @@ class AppInput extends StatelessWidget {
         ],
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: obscureText ?? isPassword,
           keyboardType: keyboardType,
           validator: validator,
           decoration: InputDecoration(

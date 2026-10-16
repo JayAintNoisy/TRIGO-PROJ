@@ -186,6 +186,7 @@ child: SafeArea(
                       hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                       controller: _passwordController,
                       isPassword: true,
+                      obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
