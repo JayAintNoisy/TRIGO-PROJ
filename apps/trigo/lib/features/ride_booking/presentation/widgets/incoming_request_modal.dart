@@ -78,7 +78,17 @@ class _IncomingRequestModalState extends State<IncomingRequestModal>
 
   Future<void> _accept() async {
     setState(() => _isAccepting = true);
-    await widget.onAccept();
+    try {
+      // The caller reports its own failures (a snackbar on Home), so a throw
+      // here must still release the button and close the sheet. Anything that
+      // keeps this await pending — navigation, for instance — would otherwise
+      // leave the driver staring at a spinning ACCEPT RIDE until the trip ends.
+      await widget.onAccept();
+    } catch (_) {
+      // Swallowed on purpose: the sheet is about to close either way.
+    } finally {
+      if (mounted) setState(() => _isAccepting = false);
+    }
     if (mounted) Navigator.pop(context);
   }
 

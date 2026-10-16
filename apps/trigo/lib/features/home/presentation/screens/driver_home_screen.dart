@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/notification_types.dart';
 import '../../../notifications/presentation/providers/notification_center.dart';
 import '../../../notifications/presentation/widgets/notification_bell_button.dart';
 import '../../../ride_booking/data/rides_repository.dart';
@@ -30,7 +31,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
   bool _isToggling = false;
   Timer? _requestTimer;
   Timer? _locationTimer;
-  final Set<String> _shownRequestIds = {};
+  /// Rides already offered to this driver, newest last, so the same request is
+  /// not re-presented on every 5s poll. Bounded so a long shift cannot grow it
+  /// without limit.
+  final List<String> _offeredRequestIds = [];
+  static const int _maxRememberedOffers = 50;
   int _pendingRequests = 0;
   List<dynamic> _municipalities = [];
   String? _municipalityId;
@@ -130,10 +135,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
         _availableRides = rides;
       });
       final fresh =
-          rides.where((r) => !_shownRequestIds.contains(r['id'])).toList();
+          rides.where((r) => !_offeredRequestIds.contains(r['id'])).toList();
       if (fresh.isNotEmpty) {
         final ride = fresh.first as Map;
-        _shownRequestIds.add(ride['id'] as String);
+        _rememberOffer(ride['id'] as String);
         _showRequestModal(ride);
       }
     } catch (_) {
@@ -141,14 +146,22 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
     }
   }
 
+  void _rememberOffer(String rideId) {
+    _offeredRequestIds
+      ..remove(rideId)
+      ..add(rideId);
+    if (_offeredRequestIds.length > _maxRememberedOffers) {
+      _offeredRequestIds.removeRange(
+        0,
+        _offeredRequestIds.length - _maxRememberedOffers,
+      );
+    }
+  }
+
   void _showRequestModal(Map ride) {
     IncomingRequestModal.show(context, ride, () async {
       try {
         await _ridesRepository.acceptRide(ride['id'] as String);
-        if (!mounted) return;
-        await context.push('/ride/${ride['id']}/tracking');
-        // Back on Home, surface the accepted trip straight away.
-        await _refreshActiveRide();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -157,7 +170,33 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
                     Text(e.toString().replaceFirst('Exception: ', ''))),
           );
         }
+        return;
       }
+      if (!mounted) return;
+
+      // The offer is taken: drop it from the offer state so the map pins and
+      // the status card stop advertising a ride this driver already has, and
+      // clear its bell alert so the request does not keep reappearing there.
+      setState(() {
+        _pendingRequests = 0;
+        _availableRides = const [];
+      });
+      ref
+          .read(notificationCenterProvider.notifier)
+          .markRideNotificationsRead(
+            ride['id'].toString(),
+            types: {NotificationTypes.rideRequest},
+          );
+
+      // Learn about the trip before leaving Home, so returning from the
+      // tracking screen shows the resume card rather than the idle controls.
+      await _refreshActiveRide();
+      if (!mounted) return;
+
+      // Deliberately not awaited: this future resolves only when the trip
+      // screen is popped, and awaiting it here is what left the request sheet
+      // open (with a spinning Accept button) for the whole ride.
+      unawaited(context.push('/ride/${ride['id']}/tracking'));
     });
   }
 

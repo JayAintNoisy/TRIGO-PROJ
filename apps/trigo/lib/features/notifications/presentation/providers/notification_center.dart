@@ -153,15 +153,29 @@ class NotificationCenterNotifier extends StateNotifier<NotificationCenterState> 
 
   /// Marks every unread `message` notification for [rideId] as read, so the
   /// badge clears as soon as the passenger or driver opens the thread.
-  Future<void> markRideMessagesRead(String rideId) async {
+  Future<void> markRideMessagesRead(String rideId) =>
+      markRideNotificationsRead(rideId, types: {NotificationTypes.message});
+
+  /// Marks unread notifications for [rideId] as read, optionally narrowed to
+  /// [types].
+  ///
+  /// Used for alerts that a later action has answered: accepting a ride clears
+  /// that ride's "new ride request" so the bell stops advertising an offer the
+  /// driver has already taken.
+  Future<void> markRideNotificationsRead(
+    String rideId, {
+    Set<String>? types,
+  }) async {
     if (state.latest.isEmpty) await reloadList();
 
     final targets = state.latest.whereType<Map>().where((item) {
       final metadata = item['metadata'];
-      return item['isRead'] == false &&
-          item['type'] == NotificationTypes.message &&
-          metadata is Map &&
-          metadata['rideId']?.toString() == rideId;
+      if (item['isRead'] != false) return false;
+      if (metadata is! Map || metadata['rideId']?.toString() != rideId) {
+        return false;
+      }
+      if (types == null) return true;
+      return types.contains(item['type']?.toString());
     }).toList();
 
     for (final item in targets) {

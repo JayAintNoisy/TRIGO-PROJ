@@ -166,4 +166,98 @@ void main() {
     expect(find.text('ACCEPT RIDE'), findsOneWidget,
         reason: 'Guard must reset after the sheet closes');
   });
+
+  group('accepting', () {
+    /// Opens the modal with a controllable accept handler.
+    Future<void> pumpWithHandler(
+      WidgetTester tester,
+      Future<void> Function() onAccept,
+    ) async {
+      tester.view.physicalSize = const Size(411, 891);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => Center(
+                child: ElevatedButton(
+                  onPressed: () => IncomingRequestModal.show(
+                    context,
+                    <String, dynamic>{'customerName': 'Juan'},
+                    onAccept,
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    testWidgets('closes as soon as the accept handler returns',
+        (tester) async {
+      var accepted = 0;
+      await pumpWithHandler(tester, () async {
+        accepted++;
+      });
+
+      await tester.tap(find.text('ACCEPT RIDE'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(accepted, 1);
+      expect(find.text('ACCEPT RIDE'), findsNothing,
+          reason: 'the offer must not linger once it has been taken');
+    });
+
+    testWidgets('stops spinning and closes when accepting fails',
+        (tester) async {
+      await pumpWithHandler(tester, () async {
+        throw Exception('This ride has already been accepted');
+      });
+
+      await tester.tap(find.text('ACCEPT RIDE'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('ACCEPT RIDE'), findsNothing);
+      expect(
+        find.byType(CircularProgressIndicator),
+        findsNothing,
+        reason: 'a failed accept must not leave the button loading forever',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a handler that outlives the trip screen still closes the sheet',
+        (tester) async {
+      // The real caller used to await the navigation that follows acceptance,
+      // which resolves only when the tracking screen is popped — leaving this
+      // sheet (and its spinner) on screen for the whole ride. The sheet must be
+      // gone as soon as the handler returns, whatever happens afterwards.
+      await pumpWithHandler(tester, () async {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
+
+      await tester.tap(find.text('ACCEPT RIDE'));
+      await tester.pump();
+
+      // While the handler is still pending the button shows progress.
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Let the handler finish, then let the sheet's exit animation run: the
+      // pulse icon repeats forever, so pumpAndSettle is not an option here.
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('ACCEPT RIDE'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+  });
 }
