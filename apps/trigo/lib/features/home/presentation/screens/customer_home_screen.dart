@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,9 @@ import '../../../../shared/services/geocoding_service.dart';
 import '../../../../shared/utils/app_snackbar.dart';
 import '../../../../shared/utils/geo_bounds.dart';
 import '../../../../shared/utils/municipality_locator.dart';
+import '../../../notifications/presentation/providers/notification_center.dart';
+import '../../../notifications/presentation/widgets/notification_bell_button.dart';
+import '../widgets/active_ride_card.dart';
 import '../widgets/customer_booking_sheet.dart';
 import '../widgets/customer_map_view.dart';
 
@@ -43,6 +47,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
   LocationSearchResult? _selectedPickupLocation;
   LocationSearchResult? _selectedDropoffLocation;
 
+  /// The ride this passenger already has in flight, or null when idle. While
+  /// set, the booking sheet is hidden and a resume card takes its place.
+  Map? _activeRide;
+  Timer? _activeRideTimer;
+
+  bool get _hasActiveRide => _activeRide != null;
+
   // In-place map picking state
   MapPickingTarget _pickingTarget = MapPickingTarget.none;
   final _pickerAddressNotifier = ValueNotifier<String>('Locating...');
@@ -59,14 +70,51 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
   void initState() {
     super.initState();
     _loadMunicipalities();
+    // A ride booked earlier must be visible the moment the passenger lands on
+    // Home, even if the tracking screen was left behind or the app restarted.
+    _refreshActiveRide();
+    _activeRideTimer = Timer.periodic(
+      const Duration(seconds: 6),
+      (_) => _refreshActiveRide(),
+    );
   }
 
   @override
   void dispose() {
+    _activeRideTimer?.cancel();
     _sheetController.dispose();
     _pickerAddressNotifier.dispose();
     _isPickerGeocodingNotifier.dispose();
     super.dispose();
+  }
+
+  /// Loads the passenger's in-flight ride, hiding the booking flow while one
+  /// exists so a second ride cannot be booked on top of the first.
+  Future<void> _refreshActiveRide() async {
+    if (!mounted) return;
+    try {
+      final ride = await _ridesRepository.getActiveRide();
+      if (!mounted) return;
+      final active = ride is Map ? ride : null;
+      if (active?['id'] == _activeRide?['id'] &&
+          active?['status'] == _activeRide?['status']) {
+        if (active == null) return;
+        setState(() => _activeRide = active);
+        return;
+      }
+      setState(() => _activeRide = active);
+    } catch (_) {
+      // Lookup failures are non-fatal; retried on the next tick
+    }
+  }
+
+  Future<void> _resumeRide() async {
+    final rideId = _activeRide?['id']?.toString();
+    if (rideId == null || rideId.isEmpty) return;
+    await context.push('/ride/$rideId/tracking');
+    // Coming back from the tracking screen, drop the card immediately if the
+    // ride has since been cancelled or completed.
+    await _refreshActiveRide();
   }
 
   Future<void> _loadMunicipalities() async {
@@ -221,6 +269,19 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
       _currentPosition?.longitude ??
       firstMunicipality(_municipalities)?.centerLng;
 
+  /// Tells the user a chosen point sits outside every configured service area,
+  /// so it can never be matched with a driver. Called from every place a point
+  /// is selected — address search, and the in-place map picker for both the
+  /// pickup and the drop-off.
+  void _promptNotServiceable() {
+    AppSnackBar.error(
+      context,
+      title: 'Area not serviceable',
+      description:
+          'Please adjust your location to a point inside a service area.',
+    );
+  }
+
   void _confirmPickedLocation() {
     final lat = _pickerLat;
     final lng = _pickerLng;
@@ -242,6 +303,15 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
     if (_pickingTarget == MapPickingTarget.pickup) {
       final pickupMatch = locateMunicipality(lat, lng, _municipalities);
 
+      // A pickup outside every service area can never be matched with a driver,
+      // so block it here and ask the user to adjust rather than silently
+      // accepting an unserviceable booking. Staying in picking mode keeps the
+      // pin on screen so they can nudge it into area.
+      if (pickupMatch == null) {
+        _promptNotServiceable();
+        return;
+      }
+
       setState(() {
         _pickupController.text = result.fullAddress;
         _selectedPickupLocation = result;
@@ -249,7 +319,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
       });
 
       // If destination was already selected, verify it remains within this pickup's polygon
-      if (_selectedDropoffLocation != null && pickupMatch != null) {
+      if (_selectedDropoffLocation != null) {
         final isDropoffValid = isPointInsideMunicipality(
           _selectedDropoffLocation!.latitude,
           _selectedDropoffLocation!.longitude,
@@ -267,23 +337,24 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
         }
       }
     } else if (_pickingTarget == MapPickingTarget.dropoff) {
-      // Validate that dropoff is inside the polygon boundary of the current pickup location
-      final pickupMuni = _getCurrentPickupMunicipality();
-      bool isDestinationInside = false;
-
-      if (pickupMuni != null) {
-        isDestinationInside =
-            isPointInsideMunicipality(lat, lng, pickupMuni);
-      } else {
-        isDestinationInside =
-            locateMunicipality(lat, lng, _municipalities) != null;
+      // A drop-off outside every service area is unserviceable no matter where
+      // the pickup is, so prompt to adjust before the same-area check below.
+      if (locateMunicipality(lat, lng, _municipalities) == null) {
+        _promptNotServiceable();
+        return; // Block placing destination point
       }
+
+      // Validate that dropoff is inside the boundary of the current pickup's municipality
+      final pickupMuni = _getCurrentPickupMunicipality();
+      final isDestinationInside =
+          pickupMuni == null || isPointInsideMunicipality(lat, lng, pickupMuni);
 
       if (!isDestinationInside) {
         AppSnackBar.error(
           context,
           title: 'Out of Service Area',
-          description: 'Drop-off destination is outside the serviceable area..',
+          description:
+              'Drop-off must be within the same service area as your pickup.',
         );
         return; // Block placing destination point
       }
@@ -302,6 +373,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
 
   Future<void> _findTrike() async {
     if (_isRequesting) return;
+    // Guard rail: the booking sheet is hidden while a ride is in flight, so
+    // this must never start a second booking.
+    if (_hasActiveRide) return;
     if (!_bookingFormKey.currentState!.validate()) return;
     setState(() => _isRequesting = true);
     try {
@@ -324,7 +398,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
           locateMunicipality(pickupLat, pickupLng, _municipalities);
       if (pickupMatch == null) {
         throw Exception(
-            'Pickup location is outside our service area. Please select a point within the covered zone.');
+            'Area not serviceable. Please adjust your pickup location to a point inside a service area.');
       }
 
       final dropoffLat = _selectedDropoffLocation?.latitude;
@@ -336,7 +410,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
 
       if (!isPointInsideMunicipality(dropoffLat, dropoffLng, pickupMatch)) {
         throw Exception(
-            'Drop-off destination is outside the serviceable area..');
+            'Drop-off must be within the same service area as your pickup.');
       }
 
       final pickup = _pickupController.text.isNotEmpty
@@ -347,7 +421,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
           : 'Drop-off Destination';
 
       if (mounted) {
-        context.pushNamed('pick-driver', queryParameters: {
+        // Await the flow so the home screen can pick the new ride up as soon
+        // as the passenger comes back from choosing a driver / tracking.
+        await context.pushNamed('pick-driver', queryParameters: {
           'pickup': pickup,
           'dropoff': dropoff,
           'pickupLat': pickupLat.toString(),
@@ -357,6 +433,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
           'municipalityId': pickupMatch.id,
           'passengers': '$_passengerCount',
         });
+        await _refreshActiveRide();
       }
     } catch (e) {
       if (mounted) {
@@ -407,9 +484,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
                     ? _sheetController.size
                     : initialSize;
                 final sheetHeight = extent * screenHeight;
-                final recenterBottomOffset = isPicking
-                    ? (bottomInset + 180)
-                    : math.min(sheetHeight + 12, maxRecenterBottom);
+                final recenterBottomOffset = _hasActiveRide
+                    ? bottomInset + 200
+                    : isPicking
+                        ? (bottomInset + 180)
+                        : math.min(sheetHeight + 12, maxRecenterBottom);
 
                 return CustomerMapView(
                   key: _mapViewKey,
@@ -432,7 +511,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
           ),
 
           // Tap anywhere on the visible map above an open sheet to minimize
-          if (!isPicking)
+          if (!isPicking && !_hasActiveRide)
             ListenableBuilder(
               listenable: _sheetController,
               builder: (context, _) {
@@ -459,31 +538,16 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             right: 16,
-            child: GestureDetector(
+            child: NotificationBellButton(
+              unreadCount:
+                  ref.watch(notificationCenterProvider).unreadCount,
               onTap: () => context.push('/notifications'),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          const Color(0xFF2563EB).withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.notifications_none,
-                    color: Colors.white, size: 28),
-              ),
             ),
           ),
 
-          // Regular Draggable Booking Sheet when NOT picking from map
-          if (!isPicking)
+          // Regular Draggable Booking Sheet when NOT picking from map and no
+          // ride is already in flight.
+          if (!isPicking && !_hasActiveRide)
             DraggableScrollableSheet(
               controller: _sheetController,
               initialChildSize: initialSize,
@@ -509,27 +573,25 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
                     if (match == null) {
                       _pickupController.clear();
                       setState(() => _selectedPickupLocation = null);
-                      AppSnackBar.error(
-                        context,
-                        title: 'Out of Service Area',
-                        description:
-                            'Pickup location is outside our service area. Please select a point within the covered zone.',
-                      );
+                      _promptNotServiceable();
                       return;
                     }
                     setState(() => _selectedPickupLocation = result);
                   },
                   onDropoffSelected: (result) {
-                    final pickupMuni = _getCurrentPickupMunicipality();
-                    bool isInside = false;
-                    if (pickupMuni != null) {
-                      isInside = isPointInsideMunicipality(
-                          result.latitude, result.longitude, pickupMuni);
-                    } else {
-                      isInside = locateMunicipality(result.latitude,
-                              result.longitude, _municipalities) !=
-                          null;
+                    if (locateMunicipality(
+                            result.latitude, result.longitude, _municipalities) ==
+                        null) {
+                      _dropoffController.clear();
+                      setState(() => _selectedDropoffLocation = null);
+                      _promptNotServiceable();
+                      return;
                     }
+
+                    final pickupMuni = _getCurrentPickupMunicipality();
+                    final isInside = pickupMuni == null ||
+                        isPointInsideMunicipality(
+                            result.latitude, result.longitude, pickupMuni);
 
                     if (!isInside) {
                       _dropoffController.clear();
@@ -538,7 +600,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
                         context,
                         title: 'Out of Service Area',
                         description:
-                            'Drop-off destination is outside the serviceable area..',
+                            'Drop-off must be within the same service area as your pickup.',
                       );
                       return;
                     }
@@ -561,6 +623,20 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen>
                   bottomInset: bottomInset,
                 );
               },
+            ),
+
+          // Active ride: the booking sheet is replaced entirely so a passenger
+          // mid-ride cannot start a second booking by accident.
+          if (_hasActiveRide)
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: bottomInset + 16,
+              child: ActiveRideCard(
+                ride: _activeRide!,
+                isDriver: false,
+                onContinue: _resumeRide,
+              ),
             ),
 
           // In-place Map Picking Confirmation Bottom Bar with isolated ValueListenableBuilders

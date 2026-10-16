@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:go_router/go_router.dart';
+import '../../../notifications/presentation/providers/notification_center.dart';
+import '../../../notifications/presentation/widgets/notification_bell_button.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 import '../../../ride_booking/presentation/widgets/incoming_request_modal.dart';
+import '../widgets/active_ride_card.dart';
 import '../widgets/driver_map_view.dart';
 import '../widgets/driver_status_card.dart';
 
@@ -34,12 +37,23 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
   geo.Position? _currentPosition;
   List<dynamic> _availableRides = const [];
 
+  /// The trip this driver has accepted and is still running, or null when
+  /// idle. Drives the resume card and suppresses new request offers.
+  Map? _activeRide;
+
+  bool get _isOnTrip => _activeRide != null;
+
   @override
   void initState() {
     super.initState();
     _loadOnlineStatus();
-    // Poll for open ride requests in the driver's municipality
-    _requestTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pollRequests());
+    _refreshActiveRide();
+    // Poll for open ride requests in the driver's municipality, and for the
+    // trip already in progress so leaving the tracking screen is recoverable.
+    _requestTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _refreshActiveRide();
+      _pollRequests();
+    });
   }
 
   @override
@@ -47,6 +61,33 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
     _requestTimer?.cancel();
     _locationTimer?.cancel();
     super.dispose();
+  }
+
+  /// Fetches the ride this driver is committed to, if any.
+  Future<void> _refreshActiveRide() async {
+    if (!mounted) return;
+    try {
+      final ride = await _ridesRepository.getDriverAssignedRide();
+      if (!mounted) return;
+      final active = ride is Map ? ride : null;
+      if (active?['id'] == _activeRide?['id']) {
+        // Same trip (or still idle): refresh the payload without rebuilding
+        // the map markers on every poll.
+        if (active != null) setState(() => _activeRide = active);
+        return;
+      }
+      setState(() => _activeRide = active);
+    } catch (_) {
+      // Lookup failures are non-fatal; retried on the next tick
+    }
+  }
+
+  void _resumeTrip() async {
+    final rideId = _activeRide?['id']?.toString();
+    if (rideId == null || rideId.isEmpty) return;
+    await context.push('/ride/$rideId/tracking');
+    // The trip may have been completed or cancelled on the way back.
+    await _refreshActiveRide();
   }
 
   Future<void> _loadOnlineStatus() async {
@@ -70,9 +111,20 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
 
   Future<void> _pollRequests() async {
     if (!_isOnline || _isToggling || !mounted) return;
+    // A driver already carrying a passenger must not be offered another ride.
+    if (_isOnTrip) {
+      if (_pendingRequests != 0 || _availableRides.isNotEmpty) {
+        setState(() {
+          _pendingRequests = 0;
+          _availableRides = const [];
+        });
+      }
+      return;
+    }
     try {
       final rides = await _ridesRepository.getAvailableRides();
       if (!mounted) return;
+      if (_isOnTrip) return;
       setState(() {
         _pendingRequests = rides.length;
         _availableRides = rides;
@@ -93,7 +145,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
     IncomingRequestModal.show(context, ride, () async {
       try {
         await _ridesRepository.acceptRide(ride['id'] as String);
-        if (mounted) context.push('/ride/${ride['id']}/tracking');
+        if (!mounted) return;
+        await context.push('/ride/${ride['id']}/tracking');
+        // Back on Home, surface the accepted trip straight away.
+        await _refreshActiveRide();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -200,47 +255,41 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen>
             child: DriverMapView(
               municipalities: _municipalities,
               municipalityId: _municipalityId,
-              availableRides: _availableRides,
+              // No open-request markers while carrying a passenger.
+              availableRides: _isOnTrip ? const [] : _availableRides,
               isOnline: _isOnline,
               currentPosition: _currentPosition,
-              onPickupTapped: _showRequestModal,
+              onPickupTapped: _isOnTrip ? null : _showRequestModal,
             ),
           ),
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             right: 16,
-            child: GestureDetector(
+            child: NotificationBellButton(
+              unreadCount:
+                  ref.watch(notificationCenterProvider).unreadCount,
               onTap: () => context.push('/notifications'),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF2563EB)
-                          .withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.notifications_none,
-                    color: Colors.white, size: 28),
-              ),
             ),
           ),
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom + (isCompact ? 42 : 46),
             left: 14,
             right: 14,
-            child: DriverStatusCard(
-              isOnline: _isOnline,
-              isToggling: _isToggling,
-              pendingRequests: _pendingRequests,
-              onToggleOnline: _toggleOnline,
-            ),
+            // While a trip is running the idle controls are replaced by the
+            // resume card: the driver cannot take another ride, so "Waiting
+            // for passengers..." would be a lie.
+            child: _isOnTrip
+                ? ActiveRideCard(
+                    ride: _activeRide!,
+                    isDriver: true,
+                    onContinue: _resumeTrip,
+                  )
+                : DriverStatusCard(
+                    isOnline: _isOnline,
+                    isToggling: _isToggling,
+                    pendingRequests: _pendingRequests,
+                    onToggleOnline: _toggleOnline,
+                  ),
           ),
         ],
       ),
