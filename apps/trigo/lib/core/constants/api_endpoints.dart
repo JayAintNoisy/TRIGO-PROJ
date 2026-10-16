@@ -16,8 +16,25 @@ class ApiEndpoints {
   static const String driverMe = '/drivers/me';
   static const String driversOnline = '/drivers/online';
   static const String driverOnlineStatus = '/drivers/online-status';
+  static const String driverPaymentMethods = '/drivers/me/payment-methods';
   static const String trackingLocation = '/tracking/location';
   static const String municipalities = '/municipalities';
   static const String notifications = '/notifications';
+  static const String notificationUnreadCount = '/notifications/unread-count';
+  static const String payments = '/payments';
   static const String uploads = '/uploads';
+
+  /// One driver payment method (enable/disable + QR code).
+  static String driverPaymentMethod(String method) =>
+      '$driverPaymentMethods/$method';
+
+  /// The payment method the passenger chose for a ride.
+  static String ridePaymentMethod(String rideId) =>
+      '$rides/$rideId/payment-method';
+
+  /// In-app chat between the passenger and driver of a ride.
+  static String rideMessages(String rideId) => '$rides/$rideId/messages';
+
+  /// Marks everything the other party sent on this ride as read.
+  static String rideMessagesRead(String rideId) => '$rides/$rideId/messages/read';
 }

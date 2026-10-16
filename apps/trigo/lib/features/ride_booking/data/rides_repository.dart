@@ -49,6 +49,27 @@ class RidesRepository {
     }
   }
 
+  /// Newest completed trip first.
+  ///
+  /// The list endpoint orders by `created_at`, which is when the passenger
+  /// booked — not when the trip finished. For an earnings or history list that
+  /// is the wrong key: a ride booked earlier but completed later would sort
+  /// below an older trip, so the order is re-derived here from the completion
+  /// time (falling back to creation for anything without one).
+  static List<dynamic> sortByCompletedDesc(List<dynamic> rides) {
+    final sorted = [...rides];
+    sorted.sort((a, b) => _completionTime(b).compareTo(_completionTime(a)));
+    return sorted;
+  }
+
+  static DateTime _completionTime(dynamic ride) {
+    if (ride is! Map) return DateTime.fromMillisecondsSinceEpoch(0);
+    final completed = DateTime.tryParse(ride['completedAt']?.toString() ?? '');
+    if (completed != null) return completed;
+    return DateTime.tryParse(ride['createdAt']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
   Future<dynamic> requestRide({
     required String municipalityId,
     required double pickupLat,
@@ -167,6 +188,33 @@ class RidesRepository {
     );
     return response.data['data'];
   }
+
+  /// Changes a rating already given. Only allowed inside the rating edit
+  /// window; the backend rejects a late change with a readable message.
+  Future<dynamic> updateRating(String id, int rating, {String? comment}) async {
+    final response = await _dio.patch(
+      '${ApiEndpoints.rides}/$id/rating',
+      data: {'rating': rating, if (comment != null) 'comment': comment},
+    );
+    return response.data['data'];
+  }
+
+  /// The method a completed ride was settled with, falling back to the method
+  /// the passenger chose. Null when neither is known.
+  static String? settledPaymentMethod(Map<dynamic, dynamic> ride) {
+    final settled = ride['settledPaymentMethod']?.toString();
+    if (settled != null && settled.isNotEmpty) return settled;
+    final chosen = ride['paymentMethod']?.toString();
+    if (chosen != null && chosen.isNotEmpty) return chosen;
+    return null;
+  }
+
+  /// The passenger's rating of the driver, or null when unrated.
+  static int? ratingOf(Map<dynamic, dynamic> ride) {
+    final value = ride['rating'];
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
+  }
 }
 
 class DriversRepository {
@@ -233,18 +281,5 @@ class DriversRepository {
   Future<List<dynamic>> getDrivers() async {
     final response = await _dio.get(ApiEndpoints.driversOnline);
     return (response.data['data'] as List?) ?? [];
-  }
-}
-
-class NotificationsRepository {
-  final Dio _dio = dioClient;
-
-  Future<List<dynamic>> getNotifications() async {
-    final response = await _dio.get(ApiEndpoints.notifications);
-    return (response.data['data'] as List?) ?? [];
-  }
-
-  Future<void> markAsRead(String id) async {
-    await _dio.patch('${ApiEndpoints.notifications}/$id/read');
   }
 }

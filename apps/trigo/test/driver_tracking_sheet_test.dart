@@ -12,6 +12,8 @@ Future<void> _pumpSheet(
   String pickup = 'Purok 3, Barangay San Isidro, Santa Rosa, Laguna',
   String dropoff =
       'Unit 1204, Tower B, Grand Residences, Ortigas Center, Pasig City',
+  String? paymentLabel,
+  VoidCallback? onMessage,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -37,6 +39,8 @@ Future<void> _pumpSheet(
                 fare: '\u20B185',
                 status: status,
                 isActioning: false,
+                paymentLabel: paymentLabel,
+                onMessage: onMessage,
                 onCall: () {},
                 onText: () {},
                 onStepAction: () {},
@@ -219,6 +223,98 @@ void main() {
       await _pumpSheet(tester,
           size: const Size(411, 891), textScale: 1.0, status: 'in_progress');
       expect(find.text('Complete Ride'), findsOneWidget);
+    });
+  });
+
+  group('passenger payment method', () {
+    testWidgets('is absent until the passenger confirms one', (tester) async {
+      await _pumpSheet(tester,
+          size: const Size(411, 891), textScale: 1.0, status: 'in_progress');
+
+      expect(find.textContaining('Payment:'), findsNothing);
+    });
+
+    testWidgets('appears once the passenger has confirmed', (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'in_progress',
+        paymentLabel: 'GCash',
+      );
+
+      expect(find.text('Payment: GCash'), findsOneWidget);
+    });
+
+    testWidgets('appearing later does not overflow a small screen',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(320, 480),
+        textScale: 2.0,
+        status: 'in_progress',
+        paymentLabel: 'Maribank',
+      );
+
+      _expectNoOverflow(tester);
+    });
+  });
+
+  group('passenger contact and completed trip', () {
+    testWidgets('offers an in-app Message action at the passenger first name',
+        (tester) async {
+      var taps = 0;
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'driver_arriving',
+        onMessage: () => taps++,
+      );
+
+      expect(find.text('Message Juan'), findsOneWidget);
+      await tester.tap(find.text('Message Juan'));
+      await tester.pump();
+
+      expect(taps, 1);
+    });
+
+    testWidgets('omits the Message action when no handler is wired',
+        (tester) async {
+      await _pumpSheet(tester,
+          size: const Size(411, 891), textScale: 1.0, status: 'accepted');
+
+      expect(find.textContaining('Message'), findsNothing);
+    });
+
+    testWidgets('a finished trip shows no dead Complete Ride button',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'completed',
+        onMessage: () {},
+      );
+
+      expect(find.text('Complete Ride'), findsNothing);
+      expect(find.text('Ride completed'), findsOneWidget);
+      expect(find.text('This trip has ended'), findsOneWidget);
+      _expectNoOverflow(tester);
+    });
+
+    testWidgets('call, sms and message still fit a small screen with big text',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(320, 480),
+        textScale: 2.0,
+        status: 'in_progress',
+        onMessage: () {},
+      );
+
+      expect(find.text('Message Juan'), findsOneWidget);
+      _expectNoOverflow(tester);
     });
   });
 }

@@ -10,6 +10,15 @@ Future<void> _pumpSheet(
   required Size size,
   required double textScale,
   String status = 'accepted',
+  List<String> driverPaymentMethods = const [],
+  String? selectedPaymentMethod,
+  VoidCallback? onChoosePaymentMethod,
+  VoidCallback? onCancelRide,
+  VoidCallback? onRateDriver,
+  VoidCallback? onMessage,
+  bool hasDriver = true,
+  int? existingRating,
+  VoidCallback? onViewReceipt,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -34,9 +43,17 @@ Future<void> _pumpSheet(
                 eta: '12 min',
                 status: status,
                 isActioning: false,
+                driverPaymentMethods: driverPaymentMethods,
+                selectedPaymentMethod: selectedPaymentMethod,
+                onChoosePaymentMethod: onChoosePaymentMethod,
+                onMessage: onMessage,
+                hasDriver: hasDriver,
+                existingRating: existingRating,
+                onViewReceipt: onViewReceipt,
                 onCall: () {},
                 onText: () {},
-                onCompleteOrCancel: () {},
+                onCancelRide: onCancelRide ?? () {},
+                onRateDriver: onRateDriver ?? () {},
               ),
             ),
           ],
@@ -50,6 +67,10 @@ Future<void> _pumpSheet(
 
 void _expectNoOverflow(WidgetTester tester) {
   final e = tester.takeException();
+  if (e is FlutterError) {
+    // Which widget overflowed is only in the diagnostics, not the message.
+    debugPrint(e.diagnostics.map((node) => node.toString()).join('\n'));
+  }
   expect(e, isNull, reason: 'Overflow/exception raised: $e');
 }
 
@@ -125,8 +146,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       _expectNoOverflow(tester);
 
-      expect(find.text('Complete Ride'), findsOneWidget);
-      final action = tester.getRect(find.text('Complete Ride'));
+      expect(find.text('Cancel Ride'), findsOneWidget);
+      final action = tester.getRect(find.text('Cancel Ride'));
       expect(action.bottom, lessThanOrEqualTo(480.0));
     });
 
@@ -153,16 +174,219 @@ void main() {
       expect(find.text('Cancel Ride'), findsOneWidget);
     });
 
-    testWidgets('in_progress offers Complete Ride', (tester) async {
+    testWidgets('accepted offers Cancel Ride', (tester) async {
+      await _pumpSheet(tester,
+          size: const Size(411, 891), textScale: 1.0, status: 'accepted');
+      expect(find.text('Cancel Ride'), findsOneWidget);
+    });
+
+    testWidgets('driver_arriving still offers Cancel Ride', (tester) async {
+      await _pumpSheet(tester,
+          size: const Size(411, 891),
+          textScale: 1.0,
+          status: 'driver_arriving');
+      expect(find.text('Cancel Ride'), findsOneWidget);
+    });
+
+    testWidgets('in_progress hands the ride to the driver', (tester) async {
       await _pumpSheet(tester,
           size: const Size(411, 891), textScale: 1.0, status: 'in_progress');
-      expect(find.text('Complete Ride'), findsOneWidget);
+
+      // No passenger action once the trip has started.
+      expect(find.text('Complete Ride'), findsNothing);
+      expect(find.text('Cancel Ride'), findsNothing);
+      expect(find.text('Rate Driver'), findsNothing);
+      expect(find.textContaining('your driver completes the ride'),
+          findsOneWidget);
     });
 
     testWidgets('completed offers Rate Driver', (tester) async {
       await _pumpSheet(tester,
           size: const Size(411, 891), textScale: 1.0, status: 'completed');
       expect(find.text('Rate Driver'), findsOneWidget);
+      expect(find.text('View Receipt'), findsNothing);
+    });
+
+    testWidgets('a completed trip that is already rated offers the receipt',
+        (tester) async {
+      var receipts = 0;
+      var rates = 0;
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'completed',
+        existingRating: 5,
+        onRateDriver: () => rates++,
+        onViewReceipt: () => receipts++,
+      );
+
+      expect(find.text('Rate Driver'), findsNothing);
+      expect(find.text('View Receipt'), findsOneWidget);
+
+      await tester.tap(find.text('View Receipt'));
+      await tester.pump();
+
+      expect(receipts, 1);
+      expect(rates, 0, reason: 'a rated trip must not reopen the rating form');
+    });
+
+    testWidgets('cancel and rate callbacks stay separate', (tester) async {
+      var cancels = 0;
+      var rates = 0;
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'accepted',
+        onCancelRide: () => cancels++,
+        onRateDriver: () => rates++,
+      );
+
+      await tester.tap(find.text('Cancel Ride'));
+      await tester.pump();
+
+      expect(cancels, 1);
+      expect(rates, 0);
+    });
+  });
+
+  group('payment method row', () {
+    testWidgets('is hidden until a driver accepts', (tester) async {
+      await _pumpSheet(tester, size: const Size(411, 891), textScale: 1.0);
+
+      expect(find.text('Payment method'), findsNothing);
+    });
+
+    testWidgets('shows cash as the default before the passenger chooses',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'in_progress',
+        driverPaymentMethods: const ['cash', 'gcash'],
+        onChoosePaymentMethod: () {},
+      );
+
+      expect(find.text('Payment method'), findsOneWidget);
+      expect(find.text('Cash (default)'), findsOneWidget);
+    });
+
+    testWidgets('shows the chosen method once one is set', (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'in_progress',
+        driverPaymentMethods: const ['cash', 'gcash'],
+        selectedPaymentMethod: 'gcash',
+        onChoosePaymentMethod: () {},
+      );
+
+      expect(find.text('GCash'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
+    });
+
+    testWidgets('tapping the row asks for the payment chooser', (tester) async {
+      var taps = 0;
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'in_progress',
+        driverPaymentMethods: const ['cash', 'gcash'],
+        onChoosePaymentMethod: () => taps++,
+      );
+
+      await tester.tap(find.text('Payment method'));
+      await tester.pump();
+
+      expect(taps, 1);
+    });
+
+    testWidgets('does not overflow a small screen with large text',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(320, 480),
+        textScale: 2.0,
+        status: 'in_progress',
+        driverPaymentMethods: const ['cash', 'gcash', 'maya'],
+        onChoosePaymentMethod: () {},
+      );
+
+      _expectNoOverflow(tester);
+    });
+  });
+
+  group('contact actions', () {
+    testWidgets('are hidden until a driver is assigned', (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'requested',
+        hasDriver: false,
+        onMessage: () {},
+      );
+
+      expect(find.text('Call'), findsNothing);
+      expect(find.text('Text'), findsNothing);
+      expect(find.text('Message'), findsNothing);
+    });
+
+    testWidgets('offer Call, Text and in-app Message once a driver accepts',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'accepted',
+        onMessage: () {},
+      );
+
+      expect(find.text('Call'), findsOneWidget);
+      expect(find.text('Text'), findsOneWidget);
+      expect(find.text('Message'), findsOneWidget);
+    });
+
+    testWidgets('message is omitted when no handler is wired', (tester) async {
+      await _pumpSheet(tester,
+          size: const Size(411, 891), textScale: 1.0, status: 'accepted');
+
+      expect(find.text('Call'), findsOneWidget);
+      expect(find.text('Message'), findsNothing);
+    });
+
+    testWidgets('tapping Message opens the chat', (tester) async {
+      var taps = 0;
+      await _pumpSheet(
+        tester,
+        size: const Size(411, 891),
+        textScale: 1.0,
+        status: 'accepted',
+        onMessage: () => taps++,
+      );
+
+      await tester.tap(find.text('Message'));
+      await tester.pump();
+
+      expect(taps, 1);
+    });
+
+    testWidgets('three actions still fit a small screen with large text',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        size: const Size(320, 480),
+        textScale: 2.0,
+        status: 'accepted',
+        onMessage: () {},
+      );
+
+      expect(find.text('Message'), findsOneWidget);
+      _expectNoOverflow(tester);
     });
   });
 }

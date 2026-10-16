@@ -15,9 +15,12 @@ import '../../features/ride_booking/presentation/screens/rating_screen.dart';
 import '../../features/driver_application/presentation/screens/driver_application_screen.dart';
 import '../../features/driver_application/presentation/screens/driver_status_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
+import '../../features/payments/presentation/screens/driver_payment_methods_screen.dart';
+import '../../features/payments/presentation/screens/driver_payment_qr_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+import '../../features/history/presentation/screens/ride_details_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/support/presentation/screens/help_support_screen.dart';
 import '../../shared/widgets/animated_branch_container.dart';
@@ -26,8 +29,9 @@ import '../../shared/widgets/app_scaffold.dart';
 final authRedirectNotifier = ValueNotifier<AuthState?>(null);
 
 final _protectedRoutes = [
-  '/home', '/history', '/profile', '/book', '/pick-driver',
+  '/home', '/history', '/profile', '/book', '/pick-driver', '/ride/',
   '/driver/earnings', '/driver/apply', '/driver/status',
+  '/driver/payment-methods',
   '/notifications', '/settings', '/support',
 ];
 
@@ -35,6 +39,7 @@ final _protectedRoutes = [
 // approved; verification screens and account pages stay accessible.
 final _driverBlockedRoutes = [
   '/home', '/history', '/driver/earnings', '/book', '/pick-driver', '/ride/',
+  '/driver/payment-methods',
 ];
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -122,6 +127,9 @@ final appRouter = GoRouter(
       path: '/ride/:id/tracking',
       builder: (context, state) => RideTrackingScreen(
         rideId: state.pathParameters['id'],
+        // Message notifications deep-link here with ?chat=1 so the thread opens
+        // as soon as the ride is loaded.
+        openChatOnLoad: state.uri.queryParameters['chat'] == '1',
       ),
     ),
     GoRoute(
@@ -134,6 +142,14 @@ final appRouter = GoRouter(
       path: '/ride/:id/rating',
       builder: (context, state) => RatingScreen(
         rideId: state.pathParameters['id'] ?? '',
+        // `?edit=1` changes an existing rating instead of creating one.
+        isEditing: state.uri.queryParameters['edit'] == '1',
+      ),
+    ),
+    GoRoute(
+      path: '/ride/:id/details',
+      builder: (context, state) => RideDetailsScreen(
+        rideId: state.pathParameters['id'] ?? '',
       ),
     ),
     GoRoute(
@@ -143,6 +159,16 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/driver/status',
       builder: (context, state) => const DriverStatusScreen(),
+    ),
+    GoRoute(
+      path: '/driver/payment-methods',
+      builder: (context, state) => const DriverPaymentMethodsScreen(),
+    ),
+    GoRoute(
+      path: '/driver/payment-methods/qr',
+      builder: (context, state) => DriverPaymentQrScreen(
+        method: state.uri.queryParameters['method'] ?? 'gcash',
+      ),
     ),
     GoRoute(
       path: '/notifications',

@@ -187,7 +187,7 @@ class HelpSupportScreen extends StatelessWidget {
           ),
           _buildFaqItem(
             question: 'How do I pay?',
-            answer: 'You can pay the driver directly in cash at the end of your ride. We are also working on adding digital payment options soon.',
+            answer: 'Your driver completes the trip and tells the app when it is done. When the ride starts, pick how you will pay: cash or one of the e-wallets your driver accepts (GCash, Maya, GoTyme or Maribank). For e-wallets, scan the driver\'s QR code shown in the app. You can change the method any time before the driver completes the ride; if you never choose, the ride is paid in cash.',
           ),
           _buildFaqItem(
             question: 'What if I lost an item?',

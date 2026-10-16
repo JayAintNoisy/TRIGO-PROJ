@@ -2,8 +2,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/payment_methods.dart';
 import '../../../../shared/utils/municipality_locator.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
+import '../../../payments/data/payment_methods_repository.dart';
 import '../../data/rides_repository.dart';
 
 class PickDriverScreen extends ConsumerStatefulWidget {
@@ -54,12 +56,27 @@ class _PickDriverScreenState extends ConsumerState<PickDriverScreen> {
       final drivers = await _repository.getDrivers();
       if (mounted) {
         setState(() {
-          // Strictly filter for online and approved drivers only
+          // Strictly filter for online and approved drivers only.
+          //
+          // The backend delivers a ride only to drivers whose registered
+          // municipality matches the ride's municipality (`listAvailableRides`
+          // filters on `municipality_id`). Showing a driver from another
+          // service area would create a request they can never receive, leaving
+          // the passenger "finding a driver" and the driver idle forever. So we
+          // only offer drivers who belong to the passenger's pickup
+          // municipality — the same key the backend matches on.
+          final municipalityId = widget.municipalityId;
+          final restrictToMunicipality =
+              municipalityId != null && municipalityId.isNotEmpty;
           _drivers = drivers.where((d) {
             final isOnline = d['isOnline'] == true;
             final isApproved = d['applicationStatus'] == 'approved' ||
                 d['applicationStatus'] == null;
-            return isOnline && isApproved;
+            if (!isOnline || !isApproved) return false;
+            if (restrictToMunicipality) {
+              return d['municipalityId']?.toString() == municipalityId;
+            }
+            return true;
           }).toList();
           _isLoading = false;
         });
@@ -144,6 +161,68 @@ class _PickDriverScreenState extends ConsumerState<PickDriverScreen> {
     } finally {
       if (mounted) setState(() => _bookingDriverId = null);
     }
+  }
+
+  /// Payment methods this driver accepts, so the passenger knows how they can
+  /// pay before choosing them. Cash is always available and the backend always
+  /// reports it first.
+  Widget _buildPaymentMethods(dynamic driver) {
+    final methods = EnabledPaymentMethod.listFrom(driver['paymentMethods']);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Accepts payment via',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final method in methods)
+                Builder(
+                  builder: (context) {
+                    final meta = PaymentMethods.byId(method.method);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: meta.background,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                            color: meta.color.withValues(alpha: 0.25)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(meta.icon, size: 13, color: meta.color),
+                          const SizedBox(width: 5),
+                          Text(
+                            meta.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: meta.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildDriverCard(BuildContext context, dynamic driver) {
@@ -309,6 +388,7 @@ class _PickDriverScreenState extends ConsumerState<PickDriverScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          _buildPaymentMethods(driver),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(

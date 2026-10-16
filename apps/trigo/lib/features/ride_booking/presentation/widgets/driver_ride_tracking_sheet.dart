@@ -17,6 +17,8 @@ class DriverRideTrackingSheet extends StatefulWidget {
     required this.onCall,
     required this.onText,
     required this.onStepAction,
+    this.paymentLabel,
+    this.onMessage,
   });
 
   final String passengerName;
@@ -29,6 +31,13 @@ class DriverRideTrackingSheet extends StatefulWidget {
   final VoidCallback onCall;
   final VoidCallback onText;
   final VoidCallback onStepAction;
+
+  /// How the passenger will pay (cash until they choose otherwise), shown to
+  /// the driver while the trip is running.
+  final String? paymentLabel;
+
+  /// Opens the in-app chat with the passenger. Null hides the action.
+  final VoidCallback? onMessage;
 
   @override
   State<DriverRideTrackingSheet> createState() =>
@@ -59,6 +68,10 @@ class _DriverRideTrackingSheetState extends State<DriverRideTrackingSheet> {
     IconData buttonIcon;
     Color buttonColor;
     String stepText;
+
+    // A finished trip has no next step: showing "Complete Ride" would be a
+    // dead button, which is what a completion notification would land on.
+    final isCompleted = status == 'completed';
 
     if (status == 'accepted') {
       buttonText = 'Arrived';
@@ -133,12 +146,18 @@ class _DriverRideTrackingSheetState extends State<DriverRideTrackingSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        _isCollapsed ? 'Show details' : 'Hide details',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade500,
+                      // Flexible so a very large system font shortens the
+                      // label instead of overflowing the sheet's header.
+                      Flexible(
+                        child: Text(
+                          _isCollapsed ? 'Show details' : 'Hide details',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       ),
                       Icon(
@@ -224,9 +243,48 @@ class _DriverRideTrackingSheetState extends State<DriverRideTrackingSheet> {
                     ),
                     SizedBox(height: gap),
 
+                    // How the passenger will pay, so the driver knows before
+                    // completing the trip (cash until the passenger chooses).
+                    if (widget.paymentLabel != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: isCompact ? 8 : 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.payments_outlined,
+                              size: 18,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Payment: ${widget.paymentLabel}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: subFontSize,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF334155),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: gap),
+                    ],
+
                     // Action Buttons: Call & Text (Matching HTML design)
-                    Row(
-                      children: [
+                    Row(                      children: [
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: onCall,
@@ -271,6 +329,35 @@ class _DriverRideTrackingSheetState extends State<DriverRideTrackingSheet> {
                       ],
                     ),
                     SizedBox(height: gap),
+
+                    // In-app chat with the passenger, alongside Call and Text
+                    if (widget.onMessage != null) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: widget.onMessage,
+                          icon: const Icon(Icons.forum_outlined, size: 18),
+                          label: Text(
+                            'Message ${passengerName.split(' ').first}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: actionFontSize - 2),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF4F46E5),
+                            side: const BorderSide(color: Color(0xFFC7D2FE)),
+                            padding: EdgeInsets.symmetric(
+                                vertical: isCompact ? 10 : 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: gap),
+                    ],
 
                     // Current Fare Card (Matching HTML design)
                     Container(
@@ -324,42 +411,74 @@ class _DriverRideTrackingSheetState extends State<DriverRideTrackingSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: isActioning ? null : onStepAction,
-                    icon: Icon(buttonIcon, size: isCompact ? 18 : 22),
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        buttonText,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: actionFontSize,
-                          fontWeight: FontWeight.bold,
+                if (isCompleted)
+                  // Read-only footer once the trip is over.
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 16, vertical: isCompact ? 12 : 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle,
+                            size: 20, color: Color(0xFF059669)),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Ride completed',
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: actionFontSize - 2,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF047857),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: isActioning ? null : onStepAction,
+                      icon: Icon(buttonIcon, size: isCompact ? 18 : 22),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          buttonText,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: actionFontSize,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonColor,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: buttonColor,
-                      padding:
-                          EdgeInsets.symmetric(vertical: isCompact ? 10 : 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: buttonColor,
+                        padding: EdgeInsets.symmetric(
+                            vertical: isCompact ? 10 : 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
                     ),
                   ),
-                ),
                 SizedBox(height: isCompact ? 4 : 8),
 
                 // Step Progress Text. Capped to two lines and allowed to
                 // shrink, so a large font scale cannot push the footer past
                 // the sheet's height budget.
                 Text(
-                  stepText,
+                  isCompleted ? 'This trip has ended' : stepText,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textScaler: TextScaler.linear(textScale.clamp(0.8, 1.1)),

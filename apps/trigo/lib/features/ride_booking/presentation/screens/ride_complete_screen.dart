@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/payment_methods.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../data/rides_repository.dart';
@@ -62,6 +63,8 @@ class _RideCompleteScreenState extends ConsumerState<RideCompleteScreen> {
         .toString();
     final driverName =
         _ride?['driverName'] ?? 'your driver';
+    // Cash unless the passenger picked something else before the ride ended.
+    final paymentLabel = PaymentMethods.labelFor(_ride?['paymentMethod'] as String?);
 
     return Scaffold(
       body: SafeArea(
@@ -94,7 +97,7 @@ class _RideCompleteScreenState extends ConsumerState<RideCompleteScreen> {
                     AppCard(
                       child: Column(
                         children: [
-                          const Text('Total Fare Paid (Cash)'),
+                          Text('Total Fare Paid ($paymentLabel)'),
                           const SizedBox(height: 6),
                           Text(
                             '\u20B1${double.parse(fare).toStringAsFixed(2)}',

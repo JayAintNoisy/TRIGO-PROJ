@@ -6,7 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messaging/presentation/widgets/ride_chat_sheet.dart';
+import '../../../notifications/presentation/providers/notification_center.dart';
+import '../../../payments/data/payment_methods_repository.dart';
+import '../../../payments/presentation/widgets/passenger_payment_method_sheet.dart';
 import '../../../ride_booking/data/rides_repository.dart';
+import '../../../../core/constants/payment_methods.dart';
+import '../../../../shared/utils/phone_actions.dart';
 import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../../shared/widgets/app_back_button.dart';
 import '../widgets/ride_tracking_map_view.dart';
@@ -15,7 +21,16 @@ import '../widgets/driver_ride_tracking_sheet.dart';
 
 class RideTrackingScreen extends ConsumerStatefulWidget {
   final String? rideId;
-  const RideTrackingScreen({super.key, this.rideId});
+
+  /// Set when the screen was opened from a message notification, so the thread
+  /// opens by itself once the ride is known and a driver is assigned.
+  final bool openChatOnLoad;
+
+  const RideTrackingScreen({
+    super.key,
+    this.rideId,
+    this.openChatOnLoad = false,
+  });
 
   @override
   ConsumerState<RideTrackingScreen> createState() => _RideTrackingScreenState();
@@ -24,6 +39,7 @@ class RideTrackingScreen extends ConsumerStatefulWidget {
 class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   final _repository = RidesRepository();
   final _driversRepository = DriversRepository();
+  final _paymentMethodsRepository = PaymentMethodsRepository();
   dynamic _ride;
   bool _isLoading = true;
   bool _isActioning = false;
@@ -40,6 +56,13 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   /// Measured height of the bottom sheet, so the map's floating controls can
   /// sit just above it instead of behind it.
   double _sheetHeight = 0;
+
+  /// Whether the passenger has already been asked how they will pay for this
+  /// trip; asked once, when the driver starts the ride.
+  bool _hasPromptedPaymentMethod = false;
+
+  /// Guards the one-shot chat open used when arriving from a message alert.
+  bool _hasOpenedChatOnLoad = false;
 
   String? get _effectiveRideId =>
       (widget.rideId == null || widget.rideId!.isEmpty) ? null : widget.rideId;
@@ -165,19 +188,59 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           _isLoading = false;
         });
 
-        // Automatically navigate to rating when completed
+        // Ask for a rating when the trip completes — but only if it has not
+        // been rated already, so a rated trip never prompts twice.
         if (ride['status'] == 'completed') {
           final authState = ref.read(authProvider);
           final isDriver = authState.activeMode == AppUserMode.driver;
-          if (!isDriver) {
+          if (!isDriver && RidesRepository.ratingOf(ride) == null) {
             _pollTimer?.cancel();
             context.push('/ride/${widget.rideId}/rating');
           }
+        } else if (ride['status'] == 'in_progress') {
+          // The passenger has no complete-ride action any more, so ask how
+          // they will pay as soon as the trip starts — before the driver can
+          // end it.
+          _schedulePaymentPrompt();
         }
+        _maybeOpenChatOnLoad();
       }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Opens the chat once when the screen was reached from a message
+  /// notification, as soon as a driver exists to talk to.
+  void _maybeOpenChatOnLoad() {
+    if (!widget.openChatOnLoad || _hasOpenedChatOnLoad) return;
+    if (!_hasAssignedDriver) return;
+
+    _hasOpenedChatOnLoad = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openChat();
+    });
+  }
+
+  /// Fare text for the payment chooser, matching the sheet's value.
+  String get _fareText {
+    final fareEstimate = (_ride?['fareEstimate'] as num?)?.toDouble() ?? 45.0;
+    return '\u20B1${fareEstimate.toStringAsFixed(0)}';
+  }
+
+  /// Asks the passenger for a payment method once the ride has started, unless
+  /// they already chose one (or already dismissed this prompt).
+  void _schedulePaymentPrompt() {
+    if (_hasPromptedPaymentMethod) return;
+    final authState = ref.read(authProvider);
+    if (authState.activeMode == AppUserMode.driver) return;
+    if (_ride?['paymentMethod'] != null) return;
+
+    _hasPromptedPaymentMethod = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || _ride?['paymentMethod'] != null) return;
+      await _choosePaymentMethod(_fareText);
+    });
   }
 
   Future<void> _cancelRide() async {
@@ -267,6 +330,120 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     }
   }
 
+  /// Whether a driver is committed to this ride. Payment methods only mean
+  /// something once someone is actually driving.
+  bool get _hasAssignedDriver => _ride?['driverId'] != null;
+
+  /// The passenger may choose how to pay once a driver has accepted and before
+  /// the trip finishes.
+  bool get _canChoosePaymentMethod {
+    if (!_hasAssignedDriver) return false;
+    final status = _ride?['status'] as String?;
+    return status == 'accepted' ||
+        status == 'driver_arriving' ||
+        status == 'in_progress';
+  }
+
+  /// Payment methods the assigned driver accepts, cash first.
+  List<String> get _driverPaymentMethodIds => EnabledPaymentMethod.listFrom(
+        _ride?['driverPaymentMethods'],
+      ).map((method) => method.method).toList();
+
+  /// Opens the chooser and stores the passenger's choice.
+  ///
+  /// Returns true once a method is on the ride (either just chosen or already
+  /// chosen earlier), false when the passenger backs out without one.
+  Future<bool> _choosePaymentMethod(String fareText) async {
+    final rideId = _effectiveRideId;
+    if (rideId == null) return false;
+
+    final chosen = await showPassengerPaymentMethodSheet(
+      context,
+      methods: EnabledPaymentMethod.listFrom(_ride?['driverPaymentMethods']),
+      selectedMethod: _ride?['paymentMethod'] as String?,
+      fareText: fareText,
+      driverName: (_ride?['driverName'] as String?) ?? 'your driver',
+    );
+    if (chosen == null || !mounted) {
+      return _ride?['paymentMethod'] != null;
+    }
+
+    try {
+      final updated =
+          await _paymentMethodsRepository.setRidePaymentMethod(rideId, chosen);
+      if (mounted && updated != null) {
+        setState(() => _ride = updated);
+      }
+      return true;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+        );
+      }
+      return _ride?['paymentMethod'] != null;
+    }
+  }
+
+  /// Opens the in-app thread with the other party of this ride.
+  Future<void> _openChat() async {
+    final rideId = _effectiveRideId;
+    final ride = _ride;
+    if (rideId == null || ride is! Map) return;
+
+    final isDriver = ref.read(authProvider).activeMode == AppUserMode.driver;
+    final otherPartyName = (isDriver ? ride['customerName'] : ride['driverName'])
+            ?.toString() ??
+        (isDriver ? 'Passenger' : 'Driver');
+    final otherPartyPhone =
+        (isDriver ? ride['customerPhone'] : ride['driverPhone'])?.toString();
+
+    await showRideChatSheet(
+      context,
+      rideId: rideId,
+      otherPartyName: otherPartyName,
+      currentUserId: ref.read(authProvider).userId,
+      otherPartyPhone: otherPartyPhone,
+      plateNumber:
+          isDriver ? null : ride['tricyclePlateNumber']?.toString(),
+      // Opening the thread clears its unread alerts from the bell.
+      onThreadRead: () => ref
+          .read(notificationCenterProvider.notifier)
+          .markRideMessagesRead(rideId),
+    );
+  }
+
+  /// Hands off to the dialer or the SMS app, falling back to showing the
+  /// number when neither can be opened.
+  Future<void> _contact({
+    required bool isCall,
+    required String name,
+    required String phone,
+  }) async {
+    if (phone.trim().isEmpty) {
+      _showContactModal(name: name, phone: phone, isCall: isCall);
+      return;
+    }
+
+    final launched =
+        isCall ? await PhoneActions.placeCall(phone) : await PhoneActions.sendSms(phone);
+    if (launched || !mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isCall
+              ? 'Could not open the phone app on this device'
+              : 'Could not open the messaging app on this device',
+        ),
+      ),
+    );
+    _showContactModal(name: name, phone: phone, isCall: isCall);
+  }
+
   void _showContactModal({
     required String name,
     required String phone,
@@ -321,6 +498,29 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              // The in-app thread is always available, even when the phone
+              // handoff is not.
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(modalContext);
+                    _openChat();
+                  },
+                  icon: const Icon(Icons.forum_outlined, size: 18),
+                  label: Text('Message $name in the app'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4F46E5),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -384,8 +584,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     final drvLng = (_ride?['driverLng'] as num?)?.toDouble();
     final distanceKm = (_ride?['distanceKm'] as num?)?.toDouble() ?? 1.2;
 
-    final fareEstimate = (_ride?['fareEstimate'] as num?)?.toDouble() ?? 45.0;
-    final fareText = '₱${fareEstimate.toStringAsFixed(0)}';
+    final fareText = _fareText;
 
     final passengerName =
         _ride?['customerName'] ?? _ride?['userName'] ?? 'Passenger';
@@ -494,16 +693,24 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                           fare: fareText,
                           status: rideStatus,
                           isActioning: _isActioning,
-                          onCall: () => _showContactModal(
-                            name: passengerName,
-                            phone: passengerPhone,
+                          // Shown only once the passenger has actually
+                          // confirmed how they will pay; the 4s ride poll
+                          // makes it appear on the driver's sheet by itself.
+                          paymentLabel: _ride?['paymentMethod'] == null
+                              ? null
+                              : PaymentMethods.labelFor(
+                                  _ride?['paymentMethod'] as String?),
+                          onCall: () => _contact(
                             isCall: true,
-                          ),
-                          onText: () => _showContactModal(
                             name: passengerName,
                             phone: passengerPhone,
-                            isCall: false,
                           ),
+                          onText: () => _contact(
+                            isCall: false,
+                            name: passengerName,
+                            phone: passengerPhone,
+                          ),
+                          onMessage: _hasAssignedDriver ? _openChat : null,
                           onStepAction: _handleDriverStepAction,
                         )
                       : PassengerRideTrackingSheet(
@@ -514,24 +721,39 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                           eta: etaText,
                           status: rideStatus,
                           isActioning: _isActioning,
-                          onCall: () => _showContactModal(
-                            name: driverName,
-                            phone: driverPhone,
+                          hasDriver: _hasAssignedDriver,
+                          driverPaymentMethods: _canChoosePaymentMethod
+                              ? _driverPaymentMethodIds
+                              : const [],
+                          selectedPaymentMethod:
+                              _ride?['paymentMethod'] as String?,
+                          onChoosePaymentMethod: _canChoosePaymentMethod
+                              ? () => _choosePaymentMethod(fareText)
+                              : null,
+                          onCall: () => _contact(
                             isCall: true,
-                          ),
-                          onText: () => _showContactModal(
                             name: driverName,
                             phone: driverPhone,
-                            isCall: false,
                           ),
-                          onCompleteOrCancel: () {
-                            if (rideStatus == 'requested' ||
-                                rideStatus == 'accepted') {
-                              _cancelRide();
-                            } else {
-                              context.push('/ride/${widget.rideId}/rating');
-                            }
-                          },
+                          onText: () => _contact(
+                            isCall: false,
+                            name: driverName,
+                            phone: driverPhone,
+                          ),
+                          onMessage: _hasAssignedDriver ? _openChat : null,
+                          // Before the trip: the passenger may back out.
+                          onCancelRide: _cancelRide,
+                          // After the trip: rating is the passenger's only
+                          // remaining action — completing the ride is the
+                          // driver's. A trip that is already rated shows the
+                          // receipt instead of asking again.
+                          existingRating: _ride == null
+                              ? null
+                              : RidesRepository.ratingOf(_ride as Map),
+                          onRateDriver: () =>
+                              context.push('/ride/${widget.rideId}/rating'),
+                          onViewReceipt: () => context
+                              .push('/ride/${widget.rideId}/details'),
                         ),
             ),
           ),
