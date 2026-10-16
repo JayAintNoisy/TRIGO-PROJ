@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,16 +20,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _rememberMe = false;
   bool _obscurePassword = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Demo credentials only during development
-    if (kDebugMode) {
-      _emailController.text = 'customer@trigo.ph';
-      _passwordController.text = 'customer123';
-    }
-  }
 
   @override
   void dispose() {

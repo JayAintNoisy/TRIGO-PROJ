@@ -8,7 +8,7 @@
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
-        <AppInput id="email" v-model="email" label="Email Address" placeholder="admin@trigo.ph" type="email" required />
+        <AppInput id="email" v-model="email" label="Email Address" placeholder="you@example.com" type="email" required />
         <AppInput id="password" v-model="password" label="Password" placeholder="••••••••" type="password" required />
 
         <div v-if="error" class="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
@@ -32,8 +32,10 @@ import AppButton from '@/components/ui/AppButton.vue';
 import { useAuthStore } from '@/stores/auth.store';
 import { useApi } from '@/composables/useApi';
 
-const email = ref('admin@trigo.ph');
-const password = ref('admin123');
+// Left blank on purpose: a prefilled credential would ship a working
+// account (the seeded admin) inside the public bundle.
+const email = ref('');
+const password = ref('');
 const loading = ref(false);
 const error = ref('');
 
