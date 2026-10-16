@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DRIVER_PAYMENT_METHODS } from '../../shared/constants/payment-status';
 
 export const createRideSchema = z.object({
   body: z.object({
@@ -22,5 +23,11 @@ export const rateRideSchema = z.object({
   body: z.object({
     rating: z.number().int().min(1).max(5),
     comment: z.string().optional(),
+  }),
+});
+
+export const setRidePaymentMethodSchema = z.object({
+  body: z.object({
+    method: z.enum(DRIVER_PAYMENT_METHODS),
   }),
 });

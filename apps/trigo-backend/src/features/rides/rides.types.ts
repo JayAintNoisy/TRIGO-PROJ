@@ -1,4 +1,6 @@
 import { RIDE_STATUS } from '../../shared/constants/ride-status';
+import { PAYMENT_METHOD } from '../../shared/constants/payment-status';
+import { DriverPaymentMethodSummary } from '../payments/payments.types';
 
 export interface RideEntity {
   id: string;
@@ -34,6 +36,29 @@ export interface RideEntity {
   /// GPS broadcast. Lets the passenger track the driver live.
   driverLat?: number | null;
   driverLng?: number | null;
+  /// Payment method the passenger chose for this ride, or null while they have
+  /// not chosen yet. Completion falls back to cash.
+  paymentMethod?: PAYMENT_METHOD | null;
+  /// Method the ride was actually settled with, written at completion. Null
+  /// until then, and the value lists should show in preference to
+  /// [paymentMethod] once it exists.
+  settledPaymentMethod?: PAYMENT_METHOD | null;
+  /// The passenger's rating of the driver, or null while unrated. One rating
+  /// per ride.
+  rating?: number | null;
+  ratingComment?: string | null;
+  ratedAt?: Date | null;
+  /// Methods the assigned driver accepts (cash first). Empty until a driver is
+  /// assigned, so the passenger can only choose once a driver exists.
+  driverPaymentMethods?: DriverPaymentMethodSummary[];
+}
+
+/// A stored ride rating, with the completion time it was made against.
+export interface RideRating {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: Date;
 }
 
 export interface CreateRideInput {

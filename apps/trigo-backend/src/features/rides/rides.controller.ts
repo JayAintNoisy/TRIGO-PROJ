@@ -96,6 +96,24 @@ export class RidesController {
     }
   }
 
+  async updateRating(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.updateRideRating(req.params.id, req.user!.id, req.body);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async setPaymentMethod(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.setRidePaymentMethod(req.params.id, req.user!.id, req.body.method);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getRideTracking(req: Request, res: Response, next: NextFunction) {
     try {
       const points = await service.getRideTracking(req.params.id, req.user!.id, req.user!.role);

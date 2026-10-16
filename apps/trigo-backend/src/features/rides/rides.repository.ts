@@ -1,6 +1,11 @@
 import { pool } from '../../shared/database/connection';
-import { RideEntity } from './rides.types';
+import { RideEntity, RideRating } from './rides.types';
 import { RIDE_STATUS } from '../../shared/constants/ride-status';
+import { PAYMENT_METHOD } from '../../shared/constants/payment-status';
+import {
+  parsePaymentMethodSummaries,
+  withBuiltInCash,
+} from '../payments/driver-payment-methods.repository';
 import { v4 as uuidv4 } from 'uuid';
 
 const RIDE_SELECT = `
@@ -12,7 +17,25 @@ const RIDE_SELECT = `
          m.name   AS municipality_name,
          dp.tricycle_plate_number AS tricycle_plate_number,
          dp.current_lat AS driver_lat,
-         dp.current_lng AS driver_lng
+         dp.current_lng AS driver_lng,
+         COALESCE((
+           SELECT json_agg(json_build_object('method', dpm.method, 'qrCodeUrl', dpm.qr_code_url) ORDER BY dpm.method)
+           FROM driver_payment_methods dpm
+           WHERE dpm.driver_profile_id = dp.id AND dpm.is_enabled = true
+         ), '[]'::json) AS driver_payment_methods,
+         -- Settled method, which for a completed ride is authoritative: it is
+         -- written at completion and falls back to cash, whereas the ride's own
+         -- payment_method is only the passenger's choice.
+         (SELECT p.method FROM payments p
+           WHERE p.ride_id = r.id
+           ORDER BY p.created_at DESC LIMIT 1) AS settled_payment_method,
+         -- One rating per ride (unique index), so these never multiply rows.
+         (SELECT rr.rating FROM ride_ratings rr
+           WHERE rr.ride_id = r.id LIMIT 1) AS ride_rating,
+         (SELECT rr.comment FROM ride_ratings rr
+           WHERE rr.ride_id = r.id LIMIT 1) AS ride_rating_comment,
+         (SELECT rr.created_at FROM ride_ratings rr
+           WHERE rr.ride_id = r.id LIMIT 1) AS ride_rated_at
   FROM rides r
   LEFT JOIN users cu ON cu.id = r.customer_id
   LEFT JOIN users du ON du.id = r.driver_id
@@ -103,15 +126,47 @@ export class RidesRepository {
     return this.findById(id);
   }
 
-  async findRatingByRideId(rideId: string): Promise<{ id: string } | null> {
-    const res = await pool.query('SELECT id FROM ride_ratings WHERE ride_id = $1 LIMIT 1', [rideId]);
-    return res.rows[0] || null;
+  /** Records the payment method the passenger chose for the ride. */
+  async updatePaymentMethod(id: string, method: PAYMENT_METHOD): Promise<RideEntity | null> {
+    await pool.query(
+      'UPDATE rides SET payment_method = $1, updated_at = NOW() WHERE id = $2',
+      [method, id]
+    );
+
+    return this.findById(id);
+  }
+
+  async findRatingByRideId(rideId: string): Promise<RideRating | null> {
+    const res = await pool.query(
+      'SELECT id, rating, comment, created_at FROM ride_ratings WHERE ride_id = $1 LIMIT 1',
+      [rideId]
+    );
+    if (!res.rows[0]) return null;
+    const row = res.rows[0];
+    return {
+      id: row.id,
+      rating: row.rating,
+      comment: row.comment,
+      createdAt: new Date(row.created_at),
+    };
   }
 
   async saveRating(rideId: string, customerId: string, driverId: string, rating: number, comment?: string): Promise<void> {
     await pool.query(
       'INSERT INTO ride_ratings (id, ride_id, customer_id, driver_id, rating, comment) VALUES ($1, $2, $3, $4, $5, $6)',
       [uuidv4(), rideId, customerId, driverId, rating, comment || null]
+    );
+  }
+
+  /**
+   * Rewrites an existing rating. Only the passenger's own rating of the driver
+   * changes; the original rating time is kept so the edit window is measured
+   * from the trip, not from the edit.
+   */
+  async updateRating(rideId: string, rating: number, comment?: string): Promise<void> {
+    await pool.query(
+      'UPDATE ride_ratings SET rating = $1, comment = $2 WHERE ride_id = $3',
+      [rating, comment || null, rideId]
     );
   }
 
@@ -150,6 +205,18 @@ export class RidesRepository {
       driverLng: row.driver_lng !== null && row.driver_lng !== undefined
         ? parseFloat(row.driver_lng)
         : null,
+      paymentMethod: (row.payment_method as PAYMENT_METHOD) ?? null,
+      settledPaymentMethod: (row.settled_payment_method as PAYMENT_METHOD) ?? null,
+      rating: row.ride_rating !== null && row.ride_rating !== undefined
+        ? Number(row.ride_rating)
+        : null,
+      ratingComment: row.ride_rating_comment ?? null,
+      ratedAt: row.ride_rated_at ? new Date(row.ride_rated_at) : null,
+      // No driver means nothing to pay them with yet, so the passenger has no
+      // methods to choose from until the ride is accepted.
+      driverPaymentMethods: row.driver_id
+        ? withBuiltInCash(parsePaymentMethodSummaries(row.driver_payment_methods))
+        : [],
     };
   }
 }
