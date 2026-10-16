@@ -17,7 +17,7 @@
           :class="activeFilter === filter.value
             ? 'bg-brand-blue-600 text-white'
             : 'bg-brand-slate-100 text-brand-slate-600 hover:bg-brand-slate-200'"
-          @click="activeFilter = filter.value"
+          @click="setFilter(filter.value)"
         >
           {{ filter.label }}
         </button>
@@ -33,7 +33,7 @@
           <th class="p-3 text-right">Actions</th>
         </template>
         <template #rows>
-          <tr v-for="app in filteredApplications" :key="app.id" class="hover:bg-brand-slate-50/50">
+          <tr v-for="app in pageItems" :key="app.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-semibold text-brand-slate-900">{{ app.userName || 'Juan Dela Cruz' }}</td>
             <td class="p-3 font-mono text-xs text-brand-slate-700">{{ app.licenseNumber }}</td>
             <td class="p-3 font-mono text-xs text-brand-slate-700">{{ app.tricyclePlateNumber }}</td>
@@ -68,13 +68,15 @@
               </div>
             </td>
           </tr>
-          <tr v-if="filteredApplications.length === 0">
+          <tr v-if="pageItems.length === 0">
             <td colspan="6" class="p-8 text-center text-sm text-brand-slate-500">
               No applications match this filter.
             </td>
           </tr>
         </template>
       </AppTable>
+
+      <AppPagination v-model:page="page" v-model:page-size="pageSize" :total="totalItems" />
     </AppCard>
 
     <!-- Reject Reason Modal -->
@@ -124,7 +126,9 @@ import AppBadge from '@/components/ui/AppBadge.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppInput from '@/components/ui/AppInput.vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 const applications = ref<any[]>([]);
@@ -152,6 +156,14 @@ const filteredApplications = computed(() =>
     ? applications.value
     : applications.value.filter((a) => a.applicationStatus === activeFilter.value)
 );
+
+// Page the filtered result set; changing the filter returns to the first page.
+const { page, pageSize, pageItems, totalItems, reset: resetPage } = usePagination(filteredApplications);
+
+function setFilter(value: string) {
+  activeFilter.value = value;
+  resetPage();
+}
 
 function statusLabel(status: string): string {
   switch (status) {

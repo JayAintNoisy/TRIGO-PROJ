@@ -90,7 +90,7 @@
             </tr>
           </thead>
           <tbody class="text-sm divide-y divide-brand-slate-100">
-            <tr v-for="(tx, index) in transactions" :key="index" class="hover:bg-brand-slate-50 transition-colors group">
+            <tr v-for="(tx, index) in pageItems" :key="index" class="hover:bg-brand-slate-50 transition-colors group">
               <td class="px-6 py-4 whitespace-nowrap text-brand-slate-800 font-medium">
                 {{ tx.type }}
               </td>
@@ -125,9 +125,21 @@
                 </span>
               </td>
             </tr>
+            <tr v-if="pageItems.length === 0">
+              <td colspan="6" class="px-6 py-8 text-center text-sm text-brand-slate-500">
+                No transactions recorded.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
+
+      <AppPagination
+        v-model:page="page"
+        v-model:page-size="pageSize"
+        :total="totalItems"
+        class="mx-6 mb-6"
+      />
     </div>
   </div>
 </template>
@@ -135,12 +147,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Search, DollarSign, Banknote, TrendingUp, CreditCard } from '@lucide/vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 
 const transactions = ref<any[]>([]);
 const isLoading = ref(true);
+
+// Ledger totals stay global; only the audit table is paged.
+const { page, pageSize, pageItems, totalItems } = usePagination(transactions);
 
 const loadTransactions = async () => {
   try {

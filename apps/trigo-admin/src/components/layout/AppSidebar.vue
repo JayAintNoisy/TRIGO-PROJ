@@ -1,11 +1,11 @@
 <template>
   <aside class="fixed inset-y-0 left-0 w-48 bg-white border-r border-brand-slate-200 flex flex-col z-20">
-    <div class="p-6 border-b border-brand-slate-100 flex flex-col items-center">
-      <div class="w-12 h-12 bg-brand-blue-base rounded-full flex items-center justify-center text-white font-bold text-xl mb-2 shadow-lg shadow-blue-200">
-        T
+    <div class="p-4 border-b border-brand-slate-100 flex items-center gap-3">
+      <AppBrandMark :size="44" class="shadow-md shadow-blue-500/25" />
+      <div class="leading-tight">
+        <h1 class="font-bold text-base text-brand-slate-900 tracking-tight">TRIGO</h1>
+        <p class="text-xs text-brand-slate-500 font-medium">Admin Portal</p>
       </div>
-      <h1 class="font-bold text-lg text-brand-slate-900 tracking-tight">TRIGO</h1>
-      <p class="text-xs text-brand-slate-500 font-medium">Admin Portal</p>
     </div>
 
     <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import AppBrandMark from '@/components/ui/AppBrandMark.vue';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'vue-router';
 import {

@@ -19,7 +19,7 @@
           <th class="p-3">Role</th>
         </template>
         <template #rows>
-          <tr v-for="user in users" :key="user.id" class="hover:bg-brand-slate-50/50">
+          <tr v-for="user in pageItems" :key="user.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-mono text-xs text-brand-slate-500">{{ user.id.slice(0, 8) }}...</td>
             <td class="p-3 font-semibold text-brand-slate-900">{{ user.firstName }} {{ user.lastName }}</td>
             <td class="p-3 text-brand-slate-700">{{ user.email }}</td>
@@ -30,8 +30,15 @@
               </AppBadge>
             </td>
           </tr>
+          <tr v-if="pageItems.length === 0">
+            <td colspan="5" class="p-8 text-center text-sm text-brand-slate-500">
+              No user accounts found.
+            </td>
+          </tr>
         </template>
       </AppTable>
+
+      <AppPagination v-model:page="page" v-model:page-size="pageSize" :total="totalItems" />
     </AppCard>
   </div>
 </template>
@@ -41,10 +48,15 @@ import { ref, onMounted } from 'vue';
 import AppCard from '@/components/ui/AppCard.vue';
 import AppTable from '@/components/ui/AppTable.vue';
 import AppBadge from '@/components/ui/AppBadge.vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 const users = ref<any[]>([]);
+
+// The list endpoint returns every account; paging happens in the browser.
+const { page, pageSize, pageItems, totalItems } = usePagination(users);
 
 onMounted(async () => {
   try {

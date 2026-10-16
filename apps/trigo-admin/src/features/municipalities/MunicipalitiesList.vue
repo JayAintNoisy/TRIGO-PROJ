@@ -24,7 +24,7 @@
           <th class="p-3 text-right">Actions</th>
         </template>
         <template #rows>
-          <tr v-for="muni in municipalities" :key="muni.id" class="hover:bg-brand-slate-50/50">
+          <tr v-for="muni in pageItems" :key="muni.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-bold text-brand-slate-900">{{ muni.name }}</td>
             <td class="p-3 text-brand-slate-600">{{ muni.province || 'Bukidnon' }}</td>
             <td class="p-3 text-xs font-mono text-brand-slate-500">{{ muni.centerLat?.toFixed(4) }}, {{ muni.centerLng?.toFixed(4) }}</td>
@@ -55,8 +55,15 @@
               </div>
             </td>
           </tr>
+          <tr v-if="pageItems.length === 0">
+            <td colspan="7" class="p-8 text-center text-sm text-brand-slate-500">
+              No municipalities configured yet.
+            </td>
+          </tr>
         </template>
       </AppTable>
+
+      <AppPagination v-model:page="page" v-model:page-size="pageSize" :total="totalItems" />
     </AppCard>
 
     <!-- Create Municipality & Boundary Modal -->
@@ -146,11 +153,16 @@ import AppTable from '@/components/ui/AppTable.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppInput from '@/components/ui/AppInput.vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import MunicipalityBoundaryMapper from './MunicipalityBoundaryMapper.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 const municipalities = ref<any[]>([]);
+
+// The list endpoint returns every jurisdiction; paging happens in the browser.
+const { page, pageSize, pageItems, totalItems } = usePagination(municipalities);
 const isCreateModalOpen = ref(false);
 const isEditBoundaryModalOpen = ref(false);
 const isEditFareModalOpen = ref(false);

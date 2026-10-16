@@ -42,7 +42,7 @@
               </tr>
             </thead>
             <tbody class="text-sm divide-y divide-brand-slate-200">
-              <tr v-for="(report, index) in reports" :key="index" class="hover:bg-brand-slate-50 transition-colors">
+              <tr v-for="(report, index) in pageItems" :key="index" class="hover:bg-brand-slate-50 transition-colors">
                 <td class="px-6 py-4">
                   <div class="flex items-center font-medium" :class="getTypeColor(report.type)">
                     <component :is="getTypeIcon(report.type)" class="w-4 h-4 mr-2" />
@@ -78,9 +78,21 @@
                   </button>
                 </td>
               </tr>
+              <tr v-if="pageItems.length === 0">
+                <td colspan="7" class="px-6 py-8 text-center text-sm text-brand-slate-500">
+                  No reports or feedback submitted.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
+
+        <AppPagination
+          v-model:page="page"
+          v-model:page-size="pageSize"
+          :total="totalItems"
+          class="mx-6 mb-6"
+        />
       </div>
     </section>
   </div>
@@ -89,13 +101,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { AlertTriangle, CheckCircle, Eye, MessageCircle, ShieldAlert, FileText } from '@lucide/vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 
 const reports = ref<any[]>([]);
 const activeDrivers = ref<any[]>([]);
 const isLoading = ref(true);
+
+// Every safety/complaint notification is reachable now that the table pages.
+const { page, pageSize, pageItems, totalItems } = usePagination(reports);
 
 const loadReports = async () => {
   try {
@@ -105,7 +122,6 @@ const loadReports = async () => {
     const res = await api.get('/notifications');
     reports.value = (res.data.data || [])
       .filter((n: any) => n.type === 'safety' || n.type === 'complaint')
-      .slice(0, 20)
       .map((n: any) => ({
         type: n.type || 'Complaint',
         reporter: 'User',

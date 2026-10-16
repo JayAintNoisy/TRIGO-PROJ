@@ -78,7 +78,7 @@
       <h2 class="text-lg font-bold text-brand-slate-900 mb-4">Recent Announcements</h2>
       
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div v-for="(announcement, index) in recentAnnouncements" :key="index" class="flex items-center gap-4 p-4 border-b border-brand-slate-100 hover:bg-brand-slate-50 transition-colors">
+        <div v-for="(announcement, index) in pageItems" :key="index" class="flex items-center gap-4 p-4 border-b border-brand-slate-100 hover:bg-brand-slate-50 transition-colors">
           <div class="w-10 h-10 rounded-full bg-brand-slate-100 text-brand-slate-500 flex items-center justify-center shrink-0">
             <Bell class="w-5 h-5" />
           </div>
@@ -94,6 +94,16 @@
             </span>
           </div>
         </div>
+        <p v-if="pageItems.length === 0" class="p-8 text-center text-sm text-brand-slate-500">
+          No announcements sent yet.
+        </p>
+
+        <AppPagination
+          v-model:page="page"
+          v-model:page-size="pageSize"
+          :total="totalItems"
+          class="mx-4 mb-4"
+        />
       </div>
     </div>
   </div>
@@ -102,7 +112,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { MessageCircle, Users, Bike, User, Send, Bell } from '@lucide/vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 
@@ -113,10 +125,13 @@ const sendStatus = ref('');
 
 const recentAnnouncements = ref<any[]>([]);
 
+// The history endpoint returns the full send log; the list pages through it.
+const { page, pageSize, pageItems, totalItems } = usePagination(recentAnnouncements);
+
 const loadAnnouncements = async () => {
   try {
     const res = await api.get('/notifications');
-    recentAnnouncements.value = (res.data.data || []).slice(0, 10).map((n: any) => ({
+    recentAnnouncements.value = (res.data.data || []).map((n: any) => ({
       title: n.title,
       date: new Date(n.createdAt).toLocaleString(),
       audience:

@@ -21,7 +21,7 @@
           <th class="p-3">Status</th>
         </template>
         <template #rows>
-          <tr v-for="ride in rides" :key="ride.id" class="hover:bg-brand-slate-50/50">
+          <tr v-for="ride in pageItems" :key="ride.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-mono text-xs text-brand-slate-500">{{ ride.id.slice(0, 8) }}...</td>
             <td class="p-3 font-semibold text-brand-slate-900">{{ ride.customerName || 'Customer' }}</td>
             <td class="p-3 text-brand-slate-700">{{ ride.driverName || 'Unassigned' }}</td>
@@ -32,8 +32,15 @@
               <AppBadge :variant="getStatusBadge(ride.status)">{{ ride.status }}</AppBadge>
             </td>
           </tr>
+          <tr v-if="pageItems.length === 0">
+            <td colspan="7" class="p-8 text-center text-sm text-brand-slate-500">
+              No rides found.
+            </td>
+          </tr>
         </template>
       </AppTable>
+
+      <AppPagination v-model:page="page" v-model:page-size="pageSize" :total="totalItems" />
     </AppCard>
   </div>
 </template>
@@ -43,10 +50,15 @@ import { ref, onMounted } from 'vue';
 import AppCard from '@/components/ui/AppCard.vue';
 import AppTable from '@/components/ui/AppTable.vue';
 import AppBadge from '@/components/ui/AppBadge.vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 const rides = ref<any[]>([]);
+
+// The list endpoint returns every ride; paging happens in the browser.
+const { page, pageSize, pageItems, totalItems } = usePagination(rides);
 
 onMounted(async () => {
   try {

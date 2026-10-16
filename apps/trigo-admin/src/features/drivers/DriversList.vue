@@ -21,7 +21,7 @@
           <th class="p-3 text-right">Actions</th>
         </template>
         <template #rows>
-          <tr v-for="driver in drivers" :key="driver.id" class="hover:bg-brand-slate-50/50">
+          <tr v-for="driver in pageItems" :key="driver.id" class="hover:bg-brand-slate-50/50">
             <td class="p-3 font-semibold text-brand-slate-900">{{ driver.userName || 'Juan Dela Cruz' }}</td>
             <td class="p-3 text-xs font-mono text-brand-slate-700">{{ driver.userPhone || '+639171112233' }}</td>
             <td class="p-3 text-xs font-mono text-brand-slate-700">{{ driver.tricyclePlateNumber }}</td>
@@ -38,8 +38,15 @@
               </AppButton>
             </td>
           </tr>
+          <tr v-if="pageItems.length === 0">
+            <td colspan="7" class="p-8 text-center text-sm text-brand-slate-500">
+              No drivers found.
+            </td>
+          </tr>
         </template>
       </AppTable>
+
+      <AppPagination v-model:page="page" v-model:page-size="pageSize" :total="totalItems" />
     </AppCard>
   </div>
 </template>
@@ -50,10 +57,15 @@ import AppCard from '@/components/ui/AppCard.vue';
 import AppTable from '@/components/ui/AppTable.vue';
 import AppBadge from '@/components/ui/AppBadge.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import AppPagination from '@/components/ui/AppPagination.vue';
 import { useApi } from '@/composables/useApi';
+import { usePagination } from '@/composables/usePagination';
 
 const api = useApi();
 const drivers = ref<any[]>([]);
+
+// The list endpoint returns every driver; paging happens in the browser.
+const { page, pageSize, pageItems, totalItems } = usePagination(drivers);
 
 const fetchDrivers = async () => {
   try {
