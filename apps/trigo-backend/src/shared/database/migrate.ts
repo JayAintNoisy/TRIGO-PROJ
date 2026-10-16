@@ -112,10 +112,23 @@ export const migrate = async () => {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       ride_id UUID REFERENCES rides(id),
       amount DECIMAL(10, 2) NOT NULL,
-      method VARCHAR(20) DEFAULT 'cash' CHECK (method IN ('cash', 'gcash', 'card')),
+      method VARCHAR(20) DEFAULT 'cash' CHECK (method IN ('cash', 'gcash', 'maya', 'gotyme', 'maribank', 'card')),
       status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'refunded')),
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Per-driver payment methods the driver has switched on. Cash is always
+    -- available and is deliberately never stored here.
+    CREATE TABLE IF NOT EXISTS driver_payment_methods (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      driver_profile_id UUID NOT NULL REFERENCES driver_profiles(id) ON DELETE CASCADE,
+      method VARCHAR(20) NOT NULL CHECK (method IN ('gcash', 'maya', 'gotyme', 'maribank')),
+      is_enabled BOOLEAN NOT NULL DEFAULT false,
+      qr_code_url TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      CONSTRAINT driver_payment_methods_unique UNIQUE (driver_profile_id, method)
     );
 
     CREATE TABLE IF NOT EXISTS notifications (
@@ -126,6 +139,16 @@ export const migrate = async () => {
       type VARCHAR(50),
       is_read BOOLEAN DEFAULT false,
       metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- In-app chat between the passenger and the driver of one ride.
+    CREATE TABLE IF NOT EXISTS ride_messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ride_id UUID NOT NULL REFERENCES rides(id) ON DELETE CASCADE,
+      sender_id UUID NOT NULL REFERENCES users(id),
+      body TEXT NOT NULL,
+      read_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW()
     );
 
@@ -149,8 +172,24 @@ export const migrate = async () => {
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS night_surcharge DECIMAL(10, 2) DEFAULT 0;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS max_passengers INTEGER DEFAULT 4;
     ALTER TABLE municipalities ADD COLUMN IF NOT EXISTS boundary_geojson JSONB;
+    ALTER TABLE rides ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20);
     CREATE UNIQUE INDEX IF NOT EXISTS ride_ratings_ride_unique ON ride_ratings (ride_id);
     CREATE INDEX IF NOT EXISTS ride_tracking_ride_idx ON ride_tracking (ride_id);
+    CREATE INDEX IF NOT EXISTS driver_payment_methods_profile_idx ON driver_payment_methods (driver_profile_id);
+    CREATE INDEX IF NOT EXISTS ride_messages_ride_idx ON ride_messages (ride_id, created_at);
+    CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications (user_id, created_at DESC);
+    DO $$
+    BEGIN
+      -- Widen the payment method check to the driver-configurable methods
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'payments_method_check'
+          AND pg_get_constraintdef(oid) NOT LIKE '%maribank%'
+      ) THEN
+        EXECUTE 'ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_method_check';
+        EXECUTE 'ALTER TABLE payments ADD CONSTRAINT payments_method_check CHECK (method IN (''cash'', ''gcash'', ''maya'', ''gotyme'', ''maribank'', ''card''))';
+      END IF;
+    END $$;
     DO $$
     BEGIN
       -- Split the legacy single name column into first_name / last_name,

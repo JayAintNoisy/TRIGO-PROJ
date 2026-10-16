@@ -4,11 +4,20 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class NotificationsRepository {
   async findAllByUserId(userId: string): Promise<NotificationEntity[]> {
+    // Bounded page: ride events add several rows per trip.
     const res = await pool.query(
-      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100',
       [userId]
     );
     return res.rows.map(this.mapRowToEntity);
+  }
+
+  async countUnreadByUserId(userId: string): Promise<number> {
+    const res = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM notifications WHERE user_id = $1 AND is_read = false',
+      [userId]
+    );
+    return res.rows[0]?.count ?? 0;
   }
 
   async create(notification: Omit<NotificationEntity, 'id' | 'createdAt'>): Promise<NotificationEntity> {
@@ -47,6 +56,27 @@ export class NotificationsRepository {
 
     const res = await pool.query(queryText);
     return res.rows.map((row: any) => row.id as string);
+  }
+
+  /**
+   * Drivers who could actually see and accept a request in [municipalityId]:
+   * approved, online, and still inside the same freshness window the
+   * `/drivers/online` list uses.
+   */
+  async findOnlineDriverUserIdsByMunicipality(
+    municipalityId: string,
+    freshnessMinutes = 3
+  ): Promise<string[]> {
+    const res = await pool.query(
+      `SELECT dp.user_id
+       FROM driver_profiles dp
+       WHERE dp.application_status = 'approved'
+         AND dp.is_online = true
+         AND dp.municipality_id = $1
+         AND dp.updated_at >= NOW() - ($2 || ' minutes')::INTERVAL`,
+      [municipalityId, freshnessMinutes]
+    );
+    return res.rows.map((row: any) => row.user_id as string);
   }
 
   private mapRowToEntity(row: any): NotificationEntity {

@@ -13,6 +13,16 @@ export class NotificationsController {
     }
   }
 
+  /** Drives the unread badge without fetching the whole list. */
+  async getUnreadCount(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.getUnreadCount(req.user!.id);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async markAsRead(req: Request, res: Response, next: NextFunction) {
     try {
       await service.markAsRead(req.params.id, req.user!.id);

@@ -12,6 +12,7 @@ const controller = new NotificationsController();
 router.use(authenticate);
 
 router.get('/', controller.getNotifications);
+router.get('/unread-count', controller.getUnreadCount);
 router.patch('/:id/read', controller.markAsRead);
 router.post('/register-device', validate(registerDeviceSchema), controller.registerDevice);
 router.post('/broadcast', authorize(USER_ROLE.ADMIN), validate(broadcastSchema), controller.broadcast);
