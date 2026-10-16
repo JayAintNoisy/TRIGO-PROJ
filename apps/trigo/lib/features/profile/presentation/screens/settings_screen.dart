@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_release.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -161,16 +162,39 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Center(
-            child: Text(
-              'TriGo App v2.1.0',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ),
+          Center(child: _buildReleaseFooter()),
         ],
+      ),
+    );
+  }
+
+  /// Env-driven build identity footer: muted 12px text for production, or the
+  /// same amber release-channel pill used on the splash screen.
+  Widget _buildReleaseFooter() {
+    final text = 'TriGo v${AppReleaseInfo.display}';
+    if (AppReleaseInfo.isProduction) {
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade400,
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF3C7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+          color: Color(0xFF92400E),
+        ),
       ),
     );
   }
