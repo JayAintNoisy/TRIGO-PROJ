@@ -60,10 +60,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { MAPBOX_TOKEN } from '@/config/mapbox';
 
 declare const mapboxgl: any;
-
-const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2VudHgiLCJhIjoiY210NWJ1bndqMDdidjJ3czU4ajRpdHl5eiJ9.bIrzKPttbOo0gAf4_jtj5g';
 
 interface BoundaryData {
   centerLat: number;

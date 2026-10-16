@@ -15,7 +15,8 @@ export class TrackingController {
 
   async getActiveDrivers(req: Request, res: Response, next: NextFunction) {
     try {
-      const drivers = await service.getActiveDrivers();
+      const municipalityId = req.query.municipalityId as string | undefined;
+      const drivers = await service.getActiveDrivers(municipalityId);
       return res.status(200).json({ success: true, data: drivers });
     } catch (error) {
       next(error);

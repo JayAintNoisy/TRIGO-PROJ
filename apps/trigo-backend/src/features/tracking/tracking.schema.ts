@@ -8,3 +8,11 @@ export const recordLocationSchema = z.object({
     accuracy: z.number().min(0).optional(),
   }),
 });
+
+/// The fleet map can be scoped to one service area. Callers must omit the
+/// parameter entirely for "all municipalities" — an empty string is not a UUID.
+export const activeDriversQuerySchema = z.object({
+  query: z.object({
+    municipalityId: z.string().uuid('municipalityId must be a valid UUID').optional(),
+  }),
+});

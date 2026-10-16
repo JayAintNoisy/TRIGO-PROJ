@@ -9,7 +9,8 @@ export class TrackingService {
     return { success: true };
   }
 
-  async getActiveDrivers() {
-    return this.repository.getActiveDrivers();
+  /// The live fleet, optionally scoped to one service area.
+  async getActiveDrivers(municipalityId?: string) {
+    return this.repository.getActiveDrivers(municipalityId);
   }
 }
