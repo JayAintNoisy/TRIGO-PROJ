@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/payment_methods.dart';
+import '../../../../core/router/branch_visibility.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
@@ -48,9 +50,27 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   void initState() {
     super.initState();
     _loadRides();
+    // New rides and status changes happen while this tab is off screen, so
+    // reload whenever it becomes visible again.
+    activeBranchNotifier.addListener(_onBranchChanged);
   }
 
-  Future<void> _loadRides() async {
+  @override
+  void dispose() {
+    activeBranchNotifier.removeListener(_onBranchChanged);
+    super.dispose();
+  }
+
+  void _onBranchChanged() {
+    if (activeBranchNotifier.value == middleBranchIndex && mounted) {
+      _loadRides(silent: true);
+    }
+  }
+
+  /// [silent] refreshes without flashing the spinner, which is what a revisit
+  /// should look like; a failure keeps the list already on screen.
+  Future<void> _loadRides({bool silent = false}) async {
+    if (!silent && mounted) setState(() => _isLoading = true);
     try {
       final rides = await _fetchRides();
       if (mounted) {
@@ -61,12 +81,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      if (silent && _rides.isNotEmpty) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
     }
   }
 
@@ -118,14 +138,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
   }
 
-  /// Where a ride card should lead when tapped. Completed rides go to rating;
-  /// cancelled rides have nothing further to show.
+  /// Where a ride card should lead when tapped. Completed rides open their
+  /// trip details (route, fare breakdown and transaction), which is also where
+  /// the passenger can rate; cancelled rides have nothing further to show.
   String? _destinationFor(dynamic ride) {
     if (ride is! Map) return null;
     final id = ride['id']?.toString();
     if (id == null || id.isEmpty) return null;
     final status = ride['status']?.toString();
-    if (status == 'completed') return '/ride/$id/rating';
+    if (status == 'completed') return '/ride/$id/details';
     if (status == 'cancelled') return null;
     return '/ride/$id/tracking';
   }
@@ -147,6 +168,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     required String driverName,
     required String fare,
     required bool isCancelled,
+    String? paymentMethod,
+    int? rating,
     VoidCallback? onTap,
   }) {
     return Container(
@@ -356,9 +379,62 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     ),
                 ],
               ),
+
+              // How it was paid for, and whether the trip has been rated: the
+              // two things a passenger otherwise has to open a trip to find.
+              if (paymentMethod != null || rating != null) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (paymentMethod != null)
+                      _historyChip(
+                        icon: PaymentMethods.byId(paymentMethod).icon,
+                        label: PaymentMethods.labelFor(paymentMethod),
+                      ),
+                    if (rating != null)
+                      _historyChip(
+                        icon: Icons.star_rounded,
+                        label: '$rating / 5',
+                        color: const Color(0xFFF59E0B),
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Small pill for a secondary fact on a history card.
+  Widget _historyChip({
+    required IconData icon,
+    required String label,
+    Color color = const Color(0xFF475569),
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -515,10 +591,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              setState(() => _isLoading = true);
-              _loadRides();
-            },
+            onPressed: () => _loadRides(),
           ),
         ],
       ),
@@ -533,10 +606,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           style: const TextStyle(color: Color(0xFFDC2626))),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () {
-                          setState(() => _isLoading = true);
-                          _loadRides();
-                        },
+                        onPressed: () => _loadRides(),
                         child: const Text('Retry'),
                       ),
                     ],
@@ -556,7 +626,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadRides,
+                      onRefresh: () => _loadRides(silent: true),
                       child: ListView.builder(
                         padding: EdgeInsets.fromLTRB(
                           16,
@@ -587,6 +657,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             fare:
                                 '\u20B1${double.parse(fareValue.toString()).toStringAsFixed(0)}',
                             isCancelled: isCancelled,
+                            paymentMethod: status == 'completed'
+                                ? RidesRepository.settledPaymentMethod(ride)
+                                : null,
+                            rating: RidesRepository.ratingOf(ride),
                             onTap: _destinationFor(ride) == null
                                 ? null
                                 : () => _openRide(ride),

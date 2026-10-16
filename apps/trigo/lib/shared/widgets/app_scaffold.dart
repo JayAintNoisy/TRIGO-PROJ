@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/router/branch_visibility.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import 'app_mode_switch.dart';
 
@@ -21,6 +22,10 @@ class AppScaffold extends ConsumerWidget {
         initialLocation: index == navigationShell.currentIndex,
       );
     }
+
+    // Branches stay alive, so their pages must be told they are visible again
+    // in order to refresh (ride history and driver earnings both do).
+    activeBranchNotifier.value = index;
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trigo/core/router/branch_visibility.dart';
 import 'package:trigo/features/history/presentation/screens/history_screen.dart';
 import 'package:trigo/features/ride_booking/data/rides_repository.dart';
 
@@ -22,6 +23,8 @@ Map<String, dynamic> _ride({
   required String status,
   required String pickup,
   required String dropoff,
+  String? settledPaymentMethod,
+  int? rating,
 }) =>
     <String, dynamic>{
       'id': id,
@@ -29,6 +32,8 @@ Map<String, dynamic> _ride({
       'pickupAddress': pickup,
       'dropoffAddress': dropoff,
       'fareEstimate': 42.0,
+      'settledPaymentMethod': settledPaymentMethod,
+      'rating': rating,
       'createdAt': '2026-09-20T02:00:00.000Z',
     };
 
@@ -55,6 +60,11 @@ Future<void> _pumpHistory(
         path: '/ride/:id/rating',
         builder: (context, state) =>
             Scaffold(body: Text('rating:${state.pathParameters['id']}')),
+      ),
+      GoRoute(
+        path: '/ride/:id/details',
+        builder: (context, state) =>
+            Scaffold(body: Text('details:${state.pathParameters['id']}')),
       ),
     ],
   );
@@ -104,8 +114,7 @@ void main() {
     });
   });
 
-  group('History rendering', () {
-    testWidgets('pins the active ride with its real stage label',
+  group('History rendering', () {    testWidgets('pins the active ride with its real stage label',
         (tester) async {
       await _pumpHistory(tester, [
         _ride(
@@ -147,6 +156,48 @@ void main() {
       await _pumpHistory(tester, []);
       expect(find.text('No rides yet'), findsOneWidget);
     });
+
+    testWidgets('shows how a finished trip was paid for, and its rating',
+        (tester) async {
+      await _pumpHistory(tester, [
+        _ride(
+          id: 'r1',
+          status: 'completed',
+          pickup: 'Gamma',
+          dropoff: 'Delta',
+          settledPaymentMethod: 'gcash',
+          rating: 4,
+        ),
+        _ride(
+          id: 'r2',
+          status: 'completed',
+          pickup: 'Eps',
+          dropoff: 'Zeta',
+          settledPaymentMethod: 'cash',
+        ),
+      ]);
+
+      expect(find.text('GCash'), findsOneWidget);
+      expect(find.text('4 / 5'), findsOneWidget);
+      expect(find.text('Cash'), findsOneWidget);
+      // An unrated trip shows no rating chip rather than a zero.
+      expect(find.text('0 / 5'), findsNothing);
+    });
+
+    testWidgets('an in-flight trip carries no payment method yet',
+        (tester) async {
+      await _pumpHistory(tester, [
+        _ride(
+          id: 'r1',
+          status: 'in_progress',
+          pickup: 'Alpha',
+          dropoff: 'Beta',
+          settledPaymentMethod: 'cash',
+        ),
+      ]);
+
+      expect(find.text('Cash'), findsNothing);
+    });
   });
 
   group('History navigation', () {
@@ -163,7 +214,8 @@ void main() {
       expect(find.text('tracking:r1'), findsOneWidget);
     });
 
-    testWidgets('tapping a completed card opens rating', (tester) async {
+    testWidgets('tapping a completed card opens its trip details',
+        (tester) async {
       await _pumpHistory(tester, [
         _ride(id: 'r9', status: 'completed', pickup: 'Gamma', dropoff: 'Delta'),
       ]);
@@ -171,7 +223,7 @@ void main() {
       await tester.tap(find.text('Gamma'));
       await tester.pumpAndSettle();
 
-      expect(find.text('rating:r9'), findsOneWidget);
+      expect(find.text('details:r9'), findsOneWidget);
     });
 
     testWidgets('a cancelled card is inert', (tester) async {
@@ -185,6 +237,73 @@ void main() {
       // Still on History: nothing navigated away.
       expect(find.text('Ride History'), findsOneWidget);
       expect(find.text('Cancelled'), findsOneWidget);
+    });
+  });
+
+  group('History freshness', () {
+    testWidgets('reloads when the tab becomes visible again', (tester) async {
+      // The loader closes over this list, so it is mutated rather than
+      // replaced when a new ride appears.
+      final rides = <dynamic>[
+        _ride(id: 'r1', status: 'completed', pickup: 'Gamma', dropoff: 'Delta'),
+      ];
+      await _pumpHistory(tester, rides);
+
+      expect(find.text('Gamma'), findsOneWidget);
+      expect(find.text('Alpha'), findsNothing);
+
+      // A ride is booked elsewhere while the tab is off screen.
+      rides.add(
+        _ride(id: 'r2', status: 'completed', pickup: 'Alpha', dropoff: 'Beta'),
+      );
+
+      activeBranchNotifier.value = 0;
+      await tester.pump();
+      activeBranchNotifier.value = middleBranchIndex;
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alpha'), findsOneWidget,
+          reason: 'a revisit must not show a stale list');
+    });
+
+    testWidgets('a failed refresh keeps the rides already on screen',
+        (tester) async {
+      var shouldFail = false;
+      final router = GoRouter(
+        initialLocation: '/history',
+        routes: [
+          GoRoute(
+            path: '/history',
+            builder: (context, state) => ProviderScope(
+              child: HistoryScreen(
+                rideLoader: () async {
+                  if (shouldFail) throw Exception('offline');
+                  return [
+                    _ride(
+                        id: 'r1',
+                        status: 'completed',
+                        pickup: 'Gamma',
+                        dropoff: 'Delta'),
+                  ];
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+      expect(find.text('Gamma'), findsOneWidget);
+
+      shouldFail = true;
+      activeBranchNotifier.value = 0;
+      await tester.pump();
+      activeBranchNotifier.value = middleBranchIndex;
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gamma'), findsOneWidget);
+      expect(find.text('offline'), findsNothing);
     });
   });
 }
