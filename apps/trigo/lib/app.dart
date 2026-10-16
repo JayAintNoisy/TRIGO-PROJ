@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/constants/notification_types.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/notifications/notification_destination.dart';
+import 'features/notifications/presentation/providers/notification_center.dart';
 import 'features/ride_booking/data/rides_repository.dart';
 import 'shared/widgets/app_mode_switch.dart';
 import 'shared/widgets/app_splash_screen.dart';
@@ -20,6 +23,11 @@ class _TriGoAppState extends ConsumerState<TriGoApp> {
   bool _isChecking = false;
   final _ridesRepository = RidesRepository();
   final _driversRepository = DriversRepository();
+
+  /// Lets the notification centre raise a heads-up banner from anywhere, even
+  /// while another route or sheet is on top.
+  final GlobalKey<ScaffoldMessengerState> _messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -118,6 +126,16 @@ class _TriGoAppState extends ConsumerState<TriGoApp> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+
+    // In-app heads-up for notifications that arrive while the app is running.
+    // Closed-app delivery needs a push service and is out of scope.
+    ref.listen(notificationCenterProvider.select((state) => state.banner),
+        (previous, next) {
+      if (next == null) return;
+      _showNotificationBanner(next);
+      ref.read(notificationCenterProvider.notifier).consumeBanner();
+    });
+
     if (!auth.isBootstrapped || !_isOnline || _isChecking) {
       return MaterialApp(
         title: 'TriGo',
@@ -135,7 +153,66 @@ class _TriGoAppState extends ConsumerState<TriGoApp> {
       title: 'TriGo',
       theme: AppTheme.lightTheme,
       routerConfig: appRouter,
+      scaffoldMessengerKey: _messengerKey,
       debugShowCheckedModeBanner: false,
+    );
+  }
+
+  void _showNotificationBanner(NotificationBanner banner) {
+    final messenger = _messengerKey.currentState;
+    if (messenger == null) return;
+
+    final isDriver = ref.read(authProvider).activeMode == AppUserMode.driver;
+    final destination = notificationDestination(
+      type: banner.type,
+      metadata: banner.metadata,
+      isDriver: isDriver,
+    );
+    final visual = notificationVisualFor(banner.type);
+
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF0F172A),
+        content: Row(
+          children: [
+            Icon(visual.icon, color: visual.color, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    banner.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    banner.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        action: destination == null
+            ? null
+            : SnackBarAction(
+                label: 'Open',
+                textColor: const Color(0xFF93C5FD),
+                onPressed: () => appRouter.go(destination),
+              ),
+      ),
     );
   }
 }

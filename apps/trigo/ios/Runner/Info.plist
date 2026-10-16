@@ -26,6 +26,11 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>sms</string>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>TriGo uses your location to set your service municipality and to book rides near you.</string>
 	<key>UIApplicationSceneManifest</key>

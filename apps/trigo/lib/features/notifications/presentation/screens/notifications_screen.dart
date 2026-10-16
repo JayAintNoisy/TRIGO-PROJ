@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/notification_types.dart';
+import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
-import '../../../ride_booking/data/rides_repository.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../data/notifications_repository.dart';
+import '../../notification_destination.dart';
+import '../providers/notification_center.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({
+    super.key,
+    this.notificationLoader,
+    this.markReadOverride,
+  });
+
+  /// Overrides how notifications are fetched. Defaults to the real repository;
+  /// tests inject a stub so no network or .env is required.
+  @visibleForTesting
+  final Future<List<dynamic>> Function()? notificationLoader;
+
+  /// Overrides marking a notification read, for the same reason.
+  @visibleForTesting
+  final Future<void> Function(String id)? markReadOverride;
 
   @override
   ConsumerState<NotificationsScreen> createState() =>
@@ -12,7 +31,12 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  final _repository = NotificationsRepository();
+  late final NotificationsRepository _repository =
+      NotificationsRepository();
+
+  Future<List<dynamic>> _fetch() =>
+      widget.notificationLoader?.call() ?? _repository.getNotifications();
+
   List<dynamic> _notifications = [];
   bool _isLoading = true;
   String? _error;
@@ -26,11 +50,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Future<void> _load() async {
     try {
-      final list = await _repository.getNotifications();
+      final list = await _fetch();
       if (mounted) {
         setState(() {
           _notifications = list;
           _isLoading = false;
+          _error = null;
         });
       }
     } catch (e) {
@@ -46,35 +71,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _markAsRead(dynamic notification) async {
     if (notification['isRead'] == true) return;
     try {
-      await _repository.markAsRead(notification['id'].toString());
+      final id = notification['id'].toString();
+      final override = widget.markReadOverride;
+      if (override != null) {
+        await override(id);
+      } else {
+        await _repository.markAsRead(id);
+      }
       if (mounted) setState(() => notification['isRead'] = true);
-    } catch (_) {}
-  }
-
-  IconData _iconFor(String? type) {
-    switch (type) {
-      case 'ride_completed':
-        return Icons.check_circle_outline;
-      case 'announcement':
-        return Icons.campaign;
-      case 'safety':
-        return Icons.warning_amber_rounded;
-      default:
-        return Icons.notifications_none;
+    } catch (_) {
+      // Leave it unread so the reader can try again.
     }
   }
 
-  Color _colorFor(String? type) {
-    switch (type) {
-      case 'ride_completed':
-        return const Color(0xFF059669);
-      case 'announcement':
-        return const Color(0xFF3B82F6);
-      case 'safety':
-        return const Color(0xFFEF4444);
-      default:
-        return Colors.grey.shade500;
-    }
+  /// Marks the tapped notification read and, where the kind has a destination
+  /// the reader may open, navigates there.
+  Future<void> _openNotification(dynamic notification) async {
+    await _markAsRead(notification);
+
+    final isDriver = ref.read(authProvider).activeMode == AppUserMode.driver;
+    final metadata = notification['metadata'];
+    final destination = notificationDestination(
+      type: notification['type']?.toString(),
+      metadata: metadata is Map ? Map<String, dynamic>.from(metadata) : null,
+      isDriver: isDriver,
+    );
+    if (destination == null || !mounted) return;
+
+    context.push(destination);
   }
 
   String _timeAgo(dynamic raw) {
@@ -87,14 +111,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return '${diff.inDays}d ago';
   }
 
-  Widget _buildNotificationItem({
-    required dynamic notification,
-  }) {
+  Widget _buildNotificationItem({required dynamic notification}) {
     final title = notification['title']?.toString() ?? '';
     final message = notification['body']?.toString() ?? '';
     final type = notification['type']?.toString();
     final isUnread = notification['isRead'] == false;
-    final iconColor = _colorFor(type);
+    final visual = notificationVisualFor(type);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -102,7 +124,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: isUnread
+              ? visual.color.withValues(alpha: 0.25)
+              : Colors.grey.shade100,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -118,10 +144,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
+              color: visual.color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(_iconFor(type), color: iconColor, size: 20),
+            child: Icon(visual.icon, color: visual.color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -290,14 +316,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                               ),
                             )
                           : RefreshIndicator(
-                              onRefresh: _load,
+                              onRefresh: () async {
+                                await _load();
+                                // The badge is derived from the same rows.
+                                await ref
+                                    .read(notificationCenterProvider.notifier)
+                                    .reloadList();
+                              },
                               child: ListView.builder(
                                 padding: const EdgeInsets.all(16),
                                 itemCount: visible.length,
                                 itemBuilder: (context, index) {
-                                  final item =
-                                      GestureDetector(
-                                    onTap: () => _markAsRead(visible[index]),
+                                  final item = GestureDetector(
+                                    onTap: () =>
+                                        _openNotification(visible[index]),
                                     child: _buildNotificationItem(
                                         notification: visible[index]),
                                   );
