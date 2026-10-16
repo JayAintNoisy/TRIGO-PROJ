@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/notification_types.dart';
+import '../../../../shared/utils/app_time.dart';
 import '../../../../shared/widgets/app_mode_switch.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -101,15 +102,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     context.push(destination);
   }
 
-  String _timeAgo(dynamic raw) {
-    final dt = DateTime.tryParse(raw?.toString() ?? '');
-    if (dt == null) return '';
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
-  }
+  /// Relative to the reader's clock, from the API's UTC timestamp.
+  String _timeAgo(dynamic raw) => formatRelative(raw);
 
   Widget _buildNotificationItem({required dynamic notification}) {
     final title = notification['title']?.toString() ?? '';

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/payment_methods.dart';
 import '../../../../core/router/branch_visibility.dart';
+import '../../../../shared/utils/app_time.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
 
@@ -90,28 +91,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
   }
 
-  String _formatDate(dynamic raw) {
-    if (raw == null) return '';
-    final dt = DateTime.tryParse(raw.toString());
-    if (dt == null) return '';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-    final suffix = dt.hour >= 12 ? 'PM' : 'AM';
-    return '${months[dt.month - 1]} ${dt.day}, $hour:${dt.minute.toString().padLeft(2, '0')} $suffix';
-  }
+  String _formatDate(dynamic raw) => formatDateTime(raw, fallback: '');
 
   ({String label, Color color, Color bg}) _statusStyle(String status) {
     switch (status) {

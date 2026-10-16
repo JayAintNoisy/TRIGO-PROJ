@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/payment_methods.dart';
 import '../../../../core/router/branch_visibility.dart';
+import '../../../../shared/utils/app_time.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../ride_booking/data/rides_repository.dart';
@@ -83,12 +84,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   double get _todayEarnings {
     final now = DateTime.now();
     return _completedRides.fold(0.0, (sum, ride) {
-      final completedAt =
-          DateTime.tryParse(ride['completedAt']?.toString() ?? '');
-      final isToday = completedAt != null &&
-          completedAt.year == now.year &&
-          completedAt.month == now.month &&
-          completedAt.day == now.day;
+      // Compared in the driver's own timezone: a UTC day boundary would land at
+      // 8am local for a Philippine driver.
+      final isToday = isSameLocalDay(ride['completedAt'], now);
       final fare = (ride['fareFinal'] ?? ride['fareEstimate'] ?? 0).toDouble();
       return sum + (isToday ? fare : 0);
     });
@@ -96,14 +94,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
 
   int get _todayTrips {
     final now = DateTime.now();
-    return _completedRides.where((ride) {
-      final completedAt =
-          DateTime.tryParse(ride['completedAt']?.toString() ?? '');
-      return completedAt != null &&
-          completedAt.year == now.year &&
-          completedAt.month == now.month &&
-          completedAt.day == now.day;
-    }).length;
+    return _completedRides
+        .where((ride) => isSameLocalDay(ride['completedAt'], now))
+        .length;
   }
 
   void _openTrip(dynamic ride) {
@@ -222,13 +215,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     );
   }
 
-  String _formatTime(dynamic raw) {
-    final dt = DateTime.tryParse(raw?.toString() ?? '');
-    if (dt == null) return '';
-    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-    final suffix = dt.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:${dt.minute.toString().padLeft(2, '0')} $suffix';
-  }
+  String _formatTime(dynamic raw) => formatClock(parseServerTime(raw), fallback: '');
 
   Widget _buildStat(String label, String value) {
     return Column(

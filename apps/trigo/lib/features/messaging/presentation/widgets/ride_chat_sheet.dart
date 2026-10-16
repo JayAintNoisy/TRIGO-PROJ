@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/utils/app_time.dart';
 import '../../../../shared/utils/phone_actions.dart';
 import '../../data/messaging_repository.dart';
 
@@ -435,15 +436,7 @@ class _MessageBubble extends StatelessWidget {
   final bool isMine;
   final bool showReadLabel;
 
-  String get _time {
-    final createdAt = message.createdAt;
-    if (createdAt == null) return '';
-    final local = createdAt.toLocal();
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final minute = local.minute.toString().padLeft(2, '0');
-    final suffix = local.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $suffix';
-  }
+  String get _time => formatClock(message.createdAt, fallback: '');
 
   @override
   Widget build(BuildContext context) {

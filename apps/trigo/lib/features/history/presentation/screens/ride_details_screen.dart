@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/payment_methods.dart';
+import '../../../../shared/utils/app_time.dart';
 import '../../../../shared/utils/rating_window.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -121,19 +122,8 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
     }
   }
 
-  String _formatDateTime(dynamic raw) {
-    final dt = DateTime.tryParse(raw?.toString() ?? '');
-    if (dt == null) return '—';
-    final local = dt.toLocal();
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final minute = local.minute.toString().padLeft(2, '0');
-    final suffix = local.hour >= 12 ? 'PM' : 'AM';
-    return '${months[local.month - 1]} ${local.day}, $hour:$minute $suffix';
-  }
+  /// Timestamps arrive as UTC and are shown in the reader's local timezone.
+  String _formatDateTime(dynamic raw) => formatDateTime(raw);
 
   String get _shortId {
     final id = _ride?['id']?.toString() ?? '';
