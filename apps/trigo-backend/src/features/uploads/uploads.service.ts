@@ -5,7 +5,7 @@ import { AppError } from '../../shared/errors/app-error';
 import { ERROR_CODES } from '../../shared/errors/error-codes';
 
 /** Storage buckets, one folder per concern — add new concerns here */
-export const UPLOAD_FOLDERS = ['driver-documents'] as const;
+export const UPLOAD_FOLDERS = ['driver-documents', 'payment-qr'] as const;
 
 export type UploadFolder = (typeof UPLOAD_FOLDERS)[number];
 

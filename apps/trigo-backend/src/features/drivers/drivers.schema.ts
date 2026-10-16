@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DRIVER_APPLICATION_STATUS } from '../../shared/constants/roles';
+import { DRIVER_PAYMENT_METHODS } from '../../shared/constants/payment-status';
 
 // Documents must be files uploaded through POST /api/uploads
 const uploadedDocumentPath = z
@@ -7,6 +8,14 @@ const uploadedDocumentPath = z
   .regex(
     /^\/uploads\/[a-z0-9-]+\/[a-f0-9-]{36}\.(jpg|png|webp|pdf)$/i,
     'Document must be a path returned by the upload endpoint',
+  );
+
+// Payment QR codes must be cropped images uploaded through POST /api/uploads
+const uploadedQrPath = z
+  .string()
+  .regex(
+    /^\/uploads\/payment-qr\/[a-f0-9-]{36}\.(jpg|png|webp)$/i,
+    'QR code must be a path returned by the upload endpoint',
   );
 
 export const applyDriverSchema = z.object({
@@ -39,5 +48,15 @@ export const updateStatusSchema = z.object({
 export const toggleOnlineSchema = z.object({
   body: z.object({
     isOnline: z.boolean(),
+  }),
+});
+
+export const updatePaymentMethodSchema = z.object({
+  params: z.object({
+    method: z.enum(DRIVER_PAYMENT_METHODS),
+  }),
+  body: z.object({
+    isEnabled: z.boolean(),
+    qrCodeUrl: uploadedQrPath.optional(),
   }),
 });

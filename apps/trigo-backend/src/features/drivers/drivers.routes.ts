@@ -1,18 +1,24 @@
 import { Router } from 'express';
 import { DriversController } from './drivers.controller';
+import { PaymentsController } from '../payments/payments.controller';
 import { authenticate } from '../../shared/middleware/authenticate';
 import { authorize } from '../../shared/middleware/authorize';
 import { validate } from '../../shared/middleware/validate';
-import { applyDriverSchema, rejectDriverSchema, updateStatusSchema, toggleOnlineSchema } from './drivers.schema';
+import { applyDriverSchema, rejectDriverSchema, updateStatusSchema, toggleOnlineSchema, updatePaymentMethodSchema } from './drivers.schema';
 import { USER_ROLE } from '../../shared/constants/roles';
 
 const router = Router();
 const controller = new DriversController();
+const paymentsController = new PaymentsController();
 
 router.post('/apply', authenticate, validate(applyDriverSchema), controller.apply);
 router.get('/me', authenticate, controller.getOwnProfile);
 router.get('/online', authenticate, controller.getOnlineDrivers);
 router.patch('/online-status', authenticate, validate(toggleOnlineSchema), controller.toggleOnlineStatus);
+
+// Driver-owned payment methods (cash is always on; the rest need a QR code)
+router.get('/me/payment-methods', authenticate, paymentsController.getOwnPaymentMethods);
+router.put('/me/payment-methods/:method', authenticate, validate(updatePaymentMethodSchema), paymentsController.updateOwnPaymentMethod);
 
 // Admin routes
 router.get('/applications', authenticate, authorize(USER_ROLE.ADMIN), controller.getApplications);

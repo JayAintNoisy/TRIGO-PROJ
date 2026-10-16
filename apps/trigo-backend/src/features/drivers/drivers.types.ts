@@ -1,4 +1,5 @@
 import { DRIVER_APPLICATION_STATUS } from '../../shared/constants/roles';
+import { DriverPaymentMethodSummary } from '../payments/payments.types';
 
 export interface DriverProfileEntity {
   id: string;
@@ -22,6 +23,9 @@ export interface DriverProfileEntity {
   userEmail?: string;
   municipalityName?: string;
   documents?: DriverDocumentEntity[];
+  /// Payment methods this driver accepts (cash always first). Lets a passenger
+  /// see accepted methods while choosing a driver.
+  paymentMethods?: DriverPaymentMethodSummary[];
 }
 
 export interface DriverDocumentEntity {

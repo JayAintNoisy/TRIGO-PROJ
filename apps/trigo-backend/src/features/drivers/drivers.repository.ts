@@ -1,6 +1,10 @@
 import { pool } from '../../shared/database/connection';
 import { DriverProfileEntity, DriverDocumentEntity, DriverApplicationInput } from './drivers.types';
 import { DRIVER_APPLICATION_STATUS } from '../../shared/constants/roles';
+import {
+  parsePaymentMethodSummaries,
+  withBuiltInCash,
+} from '../payments/driver-payment-methods.repository';
 import { v4 as uuidv4 } from 'uuid';
 
 const DRIVER_SELECT = `
@@ -8,7 +12,12 @@ const DRIVER_SELECT = `
          CONCAT_WS(' ', u.first_name, u.last_name) AS user_name,
          u.phone AS user_phone,
          u.email AS user_email,
-         m.name  AS municipality_name
+         m.name  AS municipality_name,
+         COALESCE((
+           SELECT json_agg(json_build_object('method', dpm.method, 'qrCodeUrl', dpm.qr_code_url) ORDER BY dpm.method)
+           FROM driver_payment_methods dpm
+           WHERE dpm.driver_profile_id = dp.id AND dpm.is_enabled = true
+         ), '[]'::json) AS payment_methods
   FROM driver_profiles dp
   LEFT JOIN users u ON u.id = dp.user_id
   LEFT JOIN municipalities m ON m.id = dp.municipality_id
@@ -220,6 +229,7 @@ export class DriversRepository {
       userPhone: row.user_phone || undefined,
       userEmail: row.user_email || undefined,
       municipalityName: row.municipality_name || undefined,
+      paymentMethods: withBuiltInCash(parsePaymentMethodSummaries(row.payment_methods)),
     };
   }
 
