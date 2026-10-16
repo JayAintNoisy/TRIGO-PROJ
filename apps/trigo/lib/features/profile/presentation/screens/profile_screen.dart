@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -53,7 +52,6 @@ class ProfileScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final isDriver = authState.activeMode == AppUserMode.driver;
     final name = authState.name ?? 'User';
-    final phone = authState.phone ?? '+63 *** *** ****';
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -126,14 +124,39 @@ class ProfileScreen extends ConsumerWidget {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    phone,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.7),
+                  // Only driver accounts carry a badge; a passenger is simply
+                  // a regular customer account with no badge at all.
+                  if (isDriver) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.verified_rounded,
+                              size: 14, color: Colors.white),
+                          SizedBox(width: 6),
+                          Text(
+                            'Driver',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.4,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -160,14 +183,19 @@ class ProfileScreen extends ConsumerWidget {
                     title: 'Edit Profile',
                     onTap: () {},
                   ),
-                  Divider(color: Colors.grey.shade100, height: 1),
-                  _buildMenuButton(
-                    icon: Icons.payment_outlined,
-                    iconColor: const Color(0xFF8B5CF6),
-                    bgColor: const Color(0xFFF5F3FF),
-                    title: 'Payment Methods',
-                    onTap: () {},
-                  ),
+                  // Payment methods belong to the driver account only: a
+                  // passenger pays the driver with whichever method the driver
+                  // accepts, so there is nothing to configure here.
+                  if (isDriver) ...[
+                    Divider(color: Colors.grey.shade100, height: 1),
+                    _buildMenuButton(
+                      icon: Icons.payment_outlined,
+                      iconColor: const Color(0xFF8B5CF6),
+                      bgColor: const Color(0xFFF5F3FF),
+                      title: 'Payment Methods',
+                      onTap: () => context.push('/driver/payment-methods'),
+                    ),
+                  ],
                   if (!isDriver) ...[
                     Divider(color: Colors.grey.shade100, height: 1),
                     _buildMenuButton(
@@ -181,55 +209,6 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            // One-tap passenger/driver switching — approved drivers only,
-            // or any account while debugging
-            if (kDebugMode || authState.role == 'driver')
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                transform: Matrix4.translationValues(0, -16, 0),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.swap_horiz_rounded,
-                            size: 20, color: Color(0xFF2563EB)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Active Mode',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isDriver
-                          ? 'You are using TriGo as a driver'
-                          : 'You are booking as a passenger',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               transform: Matrix4.translationValues(0, -16, 0),
@@ -297,7 +276,7 @@ class ProfileScreen extends ConsumerWidget {
                           color: const Color(0xFFDBEAFE),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.badge,
+                        child: const Icon(Icons.smartphone,
                             color: Color(0xFF2563EB), size: 20),
                       ),
                       const SizedBox(width: 12),
@@ -305,15 +284,13 @@ class ProfileScreen extends ConsumerWidget {
                         crossAxisAlignment:
                             CrossAxisAlignment.start,
                         children: [
-                          const Text('Role',
+                          const Text('Mobile Number',
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF1E293B))),
                           Text(
-                              authState.role == 'driver'
-                                  ? 'Driver'
-                                  : 'Passenger',
+                              authState.phone ?? 'Not provided',
                               style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade500)),
